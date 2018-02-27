@@ -8,6 +8,8 @@ class Queue:
 
 
     def isFilled(self):
+        if self.size == None:
+            return True
         return len(self.lst) >= self.size
 
 
@@ -15,7 +17,7 @@ class Queue:
         """ Writes an element into the queue and returns the value
         overwritten, or None.
         """
-        if not self.isFilled():
+        if not self.isFilled() or self.size == None:
             # Filling phase
             self.lst.append(elem)
             self.filled += 1
