@@ -13,6 +13,7 @@ class CNF:
         self.numClauses = 0
         self.numVars = 0
         self.comments = []
+        self.occurrences = {}
 
         if filepath == None:
             self.isInit = False
@@ -43,6 +44,13 @@ class CNF:
                     self.numClauses = int(m)
                 else:
                     self.clauses.append(list(map(int, r.findall(line)))[:-1])
+
+        for idx in range(0, self.numClauses):
+            for literal in self.clauses[idx]:
+                if literal in self.occurrences:
+                    self.occurrences[literal].append(idx)
+                else:
+                    self.occurrences[literal] = [idx]
 
         self.isInit = True
 
