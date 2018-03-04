@@ -1,4 +1,4 @@
-from .utils import *
+from sat.utils import *
 
 class ProbSAT:
 
@@ -10,13 +10,15 @@ class ProbSAT:
 
     def initProbs(self):
         if self.func == 'poly':
-            for i in range(0, formula.maxOccs+1):
+            self.probs = []
+            for i in range(0, self.formula.maxOccs+1):
                 self.probs.append(pow(self.eps+i, -self.cb))
         elif self.func == 'exp':
-            for i in range(0, formula.maxOccs+1):
+            self.probs = []
+            for i in range(0, self.formula.maxOccs+1):
                 self.probs.append(pow(self.cb, -i))
         else:
-            raise ValueError('func=\'{}\' must either be \'poly\' or \'exp\'."
+            raise ValueError('func=\'{}\' must either be \'poly\' or \'exp\'.'
                              .format(self.func))
 
 
@@ -29,13 +31,6 @@ class ProbSAT:
             raise TypeError("formula = {} is neither a cnf-formula nor a string"
                             .format(formula))
 
-        if cb == None:
-            self.cb = defaultCB[max(map(len, formula.clauses))]
-        elif type(cb) == float:
-            self.cb = cb
-        else:
-            raise TypeError("cb={} is not of type float."
-                            .format(cb))
 
         if maxFlips == None:
             self.maxFlips = sys.maxsize
@@ -53,9 +48,20 @@ class ProbSAT:
             raise TypeError("maxTries={} is not of type int."
                             .format(maxTries))
 
+        if cb == None:
+            self.cb = ProbSAT.defaultCB[max(map(len, self.formula.clauses))][func]
+        elif type(cb) == float:
+            self.cb = cb
+        else:
+            raise TypeError("cb={} is not of type float."
+                            .format(cb))
+
         self.func = func
+        self.eps = 1
         self.initProbs()
         self.tracker = Entropytracker()
+        self.flips = 0
+        self.tries = 0
 
 
     def initWalk(self, seed=None):
@@ -73,30 +79,34 @@ class ProbSAT:
 
     def solve(self, seed=None):
         for t in range(0, self.maxTries):
+            self.tries = t
             self.initWalk(seed)
             for f in range(0, self.maxFlips):
-                unsat = len(self.falseClause)
+                self.flips = f
+                unsat = len(self.falseClauses)
                 # if (a is model for F) then
                 #   reeturn a
                 if unsat == 0:
                     return True
                 # C_u <- randomly selected unsat clause
-                ci  = self.falseClause.lst[f % unsat]
+                ci  = self.falseClauses.lst[f % unsat]
                 c   = self.formula.clauses[ci]
 
                 # for x in C_u do
                 #   compute f(x,a)
-                ws  = [self.probs[self.scoreboard.breaks[abs(lit)]]
+                ws  = [self.probs[self.scoreboard.getBreakScore(abs(lit))]
                        for lit in c]
 
                 # var <- random variable x according to probability
                 #   f(x,a)/sum(x in C_u, f(x,a))
-                lit = random.coices(c, weights=ws)
+                lit = random.choices(c, weights=ws)[0]
 
                 # flip(var)
                 self.scoreboard.flip(abs(lit),
                                      self.formula,
                                      self.assignment,
-                                     self.falselist)
+                                     self.falseClauses)
+                self.tracker.add(abs(lit))
+
 
         return False

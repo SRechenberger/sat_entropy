@@ -51,8 +51,11 @@ class Falselist:
                              .format(idx, len(self.lst)))
 
         tmp = self.lst[idx]
-        self.lst[idx] = self.lst.pop()
-        self.mapping[self.lst[idx]] = idx
+        if idx == len(self.lst)-1:
+            self.lst.pop()
+        else:
+            self.lst[idx] = self.lst.pop()
+            self.mapping[self.lst[idx]] = idx
         del self.mapping[tmp]
 
 
@@ -208,9 +211,9 @@ class CNF:
                     self.occurrences[literal] = [idx]
 
         self.maxOccs = 0
-        for _, occ in self.occurrences:
-            if len(occ) > self.maxOcc:
-                self.maxOcc = len(occ)
+        for _, occ in self.occurrences.items():
+            if len(occ) > self.maxOccs:
+                self.maxOccs = len(occ)
 
 
         self.isInit = True
@@ -256,6 +259,13 @@ class CNF:
         if not self.isInit:
             raise RuntimeError("Formula not initialized yet.")
 
+    def getOccurrences(self, literal):
+        if literal in self.occurrences:
+            return self.occurrences[literal]
+        else:
+            return []
+
+
 class Assignment:
 
     def __init__(self, atoms = None, varCount = None, seed = None):
@@ -295,6 +305,7 @@ class Assignment:
         if not type(literal) == int:
             raise TypeError("literal = {} is no int.".format(literal))
 
+        var = abs(literal)
         if var <= 0:
             raise ValueError("var = {} is negative or zero.".format(var))
 
@@ -380,20 +391,30 @@ class Breakscore:
             # if there is no true literal
             elif self.numTrueLit[-1] == 0:
                 # add the clause to the list of false clauses
-                falseList.add(clauseIdx)
+                falselist.add(clauseIdx)
 
             # next clause
             clauseIdx += 1
 
 
     def incrementBreakScore(self, variable):
-        if type(variable) != int:
+        if not type(variable) == int:
             raise TypeError("variable={} is not of type int.".format(variable))
 
         if variable in self.breaks:
             self.breaks[variable] += 1
         else:
             self.breaks[variable] = 1
+
+    def getBreakScore(self, variable):
+        if not type(variable) == int:
+            raise TypeError("variable={} is not of type int.".format(variable))
+
+        if variable in self.breaks:
+            return self.breaks[variable]
+        else:
+            return 0
+
 
 
     def flip(self, variable, formula, assignment, falselist):
@@ -412,27 +433,27 @@ class Breakscore:
         # a[v] = -a[v]
         assignment.flip(variable)
         # satisfyingLiteral = a[v] ? v : -v
-        satisfyingLiteral = variable if self.assignment.isTrue(v) else -variable
+        satisfyingLiteral = variable if assignment.isTrue(variable) else -variable
         # falsifyingLiteral = a[v] ? -v : v
         # isn't this just -satisfyingLiteral ?
-        falsifyingLiteral = -variable if self.assignment.isTrue(v) else variable
+        falsifyingLiteral = -variable if assignment.isTrue(variable) else variable
         occs = formula.occurrences
-        for clauseIdx in occs[satisfyingLiteral]:
+        for clauseIdx in formula.getOccurrences(satisfyingLiteral):
             if self.numTrueLit[clauseIdx] == 0:
-                falseList.remove(clauseIdx)
+                falselist.remove(falselist.mapping[clauseIdx])
                 self.incrementBreakScore(variable)
                 self.critVar[clauseIdx] = variable
-            elif numTrueLit[clauseIdx] == 1:
+            elif self.numTrueLit[clauseIdx] == 1:
                 self.breaks[self.critVar[clauseIdx]] -= 1
             self.numTrueLit[clauseIdx] += 1
 
-        for clauseIdx in occs[falsifyingLiteral]:
+        for clauseIdx in formula.getOccurrences(falsifyingLiteral):
             if self.numTrueLit[clauseIdx] == 1:
-                falseList.add(clauseIdx)
+                falselist.add(clauseIdx)
                 self.breaks[variable] -= 1
                 self.critVar[clauseIdx] = variable
             elif self.numTrueLit[clauseIdx] == 2:
-                for lit in self.formula.clauses[clauseIdx]:
+                for lit in formula.clauses[clauseIdx]:
                     if assignment.isTrue(lit):
                         self.critVar[clauseIdx] = abs(lit)
                         self.incrementBreakScore(abs(lit))
