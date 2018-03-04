@@ -61,6 +61,9 @@ class Falselist:
         self.mapping[elem] = len(self.lst)-1
 
 
+    def __len__(self):
+        return self.length()
+
     def length(self):
         return len(self.lst)
 class Entropytracker:
@@ -204,7 +207,14 @@ class CNF:
                 else:
                     self.occurrences[literal] = [idx]
 
+        self.maxOccs = 0
+        for _, occ in self.occurrences:
+            if len(occ) > self.maxOcc:
+                self.maxOcc = len(occ)
+
+
         self.isInit = True
+
 
 
     def __str__(self):
