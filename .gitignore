@@ -107,3 +107,6 @@ venv.bak/
 
 # cnf files
 *.cnf
+
+# ing-prefix
+ign_*
