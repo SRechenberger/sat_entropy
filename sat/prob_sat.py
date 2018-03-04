@@ -77,11 +77,16 @@ class ProbSAT:
                                        self.falseClauses)
 
 
-    def solve(self, seed=None):
+    def solve(self, seed=None, minEntropy=None, lookBack=None):
+        withLookBack = type(minEntropy) == float and type(lookBack) == int
+
         for t in range(0, self.maxTries):
             self.tries = t
             self.initWalk(seed)
+            if withLookBack:
+                walkTracker = Entropytracker(size=lookBack)
             for f in range(0, self.maxFlips):
+
                 self.flips = f
                 unsat = len(self.falseClauses)
                 # if (a is model for F) then
@@ -107,6 +112,14 @@ class ProbSAT:
                                      self.assignment,
                                      self.falseClauses)
                 self.tracker.add(abs(lit))
+                if withLookBack:
+                    walkTracker.add(abs(lit))
+                    h = walkTracker.getEntropy()
+                    if not h == None and h < minEntropy:
+                        print('Early break at h={} (flips={})'
+                              .format(h, f))
+                        break
+
 
 
         return False

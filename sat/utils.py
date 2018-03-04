@@ -10,6 +10,8 @@ class Queue:
         self.filled = 0
         self.lst = []
 
+    def __len__(self):
+        return len(self.lst)
 
     def isFilled(self):
         if self.size == None:
@@ -69,6 +71,7 @@ class Falselist:
 
     def length(self):
         return len(self.lst)
+
 class Entropytracker:
     def __init__(self, size = None):
         self.queue = Queue(size)
@@ -155,7 +158,8 @@ class Entropytracker:
         # Return the entropy only, if the queue is sufficiently filled,
         # for it would not be valid otherwise.
         if self.queue.isFilled() or self.size == None:
-            self.calculateEntropy()
+            if self.size == None or self.entropy == 0:
+                self.calculateEntropy()
             return self.entropy
         else:
             return None
