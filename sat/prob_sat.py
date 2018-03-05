@@ -5,7 +5,8 @@ class ProbSAT:
     defaultCB = {3: {'poly': 2.38, 'exp' : 2.5},
                  4: {'poly': 3.0,  'exp' : 3.0},
                  5: {'poly': 3.6,  'exp' : 3.6},
-                 6: {'poly': 4.4,  'exp' : 4.4}}
+                 6: {'poly': 4.4,  'exp' : 4.4},
+                 7: {'poly': 4.7,  'exp' : 4.4}}
 
 
     def initProbs(self):
@@ -62,6 +63,7 @@ class ProbSAT:
         self.tracker = Entropytracker()
         self.flips = 0
         self.tries = 0
+        self.earlyRestarts = 0
 
 
     def initWalk(self, seed=None):
@@ -76,25 +78,36 @@ class ProbSAT:
                                        self.assignment,
                                        self.falseClauses)
 
+    def __call__(self, seed=None, minEntropyF=None, lookBack=None):
+        return self.solve(seed, minEntropyF, lookBack)
 
-    def solve(self, seed=None, minEntropy=None, lookBack=None):
-        withLookBack = type(minEntropy) == float and type(lookBack) == int
+    def solve(self, seed=None, minEntropyF=None, lookBack=None):
+        withLookBack = type(minEntropyF) == float and type(lookBack) == int
+        if withLookBack and (minEntropyF < 0 or minEntropyF > 1):
+            raise ValueError('minEntropyF={} should be between 0 and 1.'
+                             .format(minEntropyF))
+        if withLookBack:
+            minEntropy = math.log(self.formula.numVars,2)*minEntropyF
 
         for t in range(0, self.maxTries):
+            # print('c Try #{}'.format(t))
             self.tries = t
             self.initWalk(seed)
+            minUnsat = len(self.falseClauses)
             if withLookBack:
                 walkTracker = Entropytracker(size=lookBack)
             for f in range(0, self.maxFlips):
 
                 self.flips = f
                 unsat = len(self.falseClauses)
+                if unsat < minUnsat:
+                    minUnsat = unsat
                 # if (a is model for F) then
                 #   reeturn a
                 if unsat == 0:
                     return True
                 # C_u <- randomly selected unsat clause
-                ci  = self.falseClauses.lst[f % unsat]
+                ci  = self.falseClauses.lst[random.randint(0, unsat-1)]
                 c   = self.formula.clauses[ci]
 
                 # for x in C_u do
@@ -116,9 +129,13 @@ class ProbSAT:
                     walkTracker.add(abs(lit))
                     h = walkTracker.getEntropy()
                     if not h == None and h < minEntropy:
-                        print('Early break at h={} (flips={})'
-                              .format(h, f))
+                        # print('c Early break at h={} (flips={}) {} < {}'
+                        #      .format(h, f, minUnsat, unsat))
+                        self.earlyRestarts += 1
                         break
+
+            # print('c unsat clauses: {} (min: {})'
+            #      .format(len(self.falseClauses), minUnsat))
 
 
 

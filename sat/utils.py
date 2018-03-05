@@ -34,6 +34,9 @@ class Queue:
             self.begin += 1
             self.begin %= self.size
             return tmp
+
+
+
 class Falselist:
     """ Models a list with no need for order. """
     def __init__(self):
@@ -72,13 +75,23 @@ class Falselist:
     def length(self):
         return len(self.lst)
 
+
+
 class Entropytracker:
     def __init__(self, size = None):
         self.queue = Queue(size)
         self.count = {}
-        self.entropy = 0
+        if size:
+            self.entropy = 0
+        else:
+            self.entropy = None
         self.size = size
         self.isInit = False
+        if size:
+            self.h = [0]
+            for x in range(1, self.size+1):
+                p = x/self.size
+                self.h.append(p*math.log(p,2))
 
 
     def calculateEntropy(self):
@@ -94,60 +107,78 @@ class Entropytracker:
                 self.entropy -= p * math.log(p,2)
             self.isInit = True and self.size != None
 
+    def incrementCount(self, elem):
+        if elem in self.count:
+            self.count[elem] += 1
+        else:
+            self.count[elem] = 1
+
+
+    def decrementCount(self, elem):
+        if elem in self.count:
+            self.count[elem] -= 1
+        else:
+            raise ValueError("elem={} has never been counted.".format(elem))
+
+
+    def getCount(self,elem):
+        if elem in self.count:
+            return self.count[elem]
+        else:
+            return 0
 
 
     def add(self, elem):
-        """ Adds a new element to the queue, and updates the entropy. """
+        """ Adds a new element to the queue, and updates the entropy,
+        if the queue is of limited size.
+        """
+
+        # If the queue is filled, it drops a value, if a new one is added;
+        # this value is then to be deleted from the tracker.
         ret = self.queue.write(elem)
+        # If there is no fixed size
         if self.size == None:
-            elements = len(self.queue.lst)
+            # Just count the element
+            self.incrementCount(elem)
+        # otherwise
         else:
-            elements = self.size
-
-        # if there is some return value,
-        # the queue is filled sufficiently.
-        if ret:
-            # If the queue was not sufficiently filled until now,
-            # initiate the entropy.
-            self.calculateEntropy()
-
-            # Calculate the old probability of the removed element.
-            p = self.count[ret] / elements
-            # Remove it from the sum.
-            self.entropy += p * math.log(p,2)
-
-            # Decrement the counter of the dropped element.
-            self.count[ret] -= 1
-            # If the counter is null, delete the field.
-            if self.count[ret] == 0:
-                del self.count[ret]
-            # Otherwise, calculate the new entropy,
-            # and add it to the sum.
+            # Calculate the OLD probability of the newly added element
+            # (may be 0).
+            pOld = self.getCount(elem)
+            # Calculate the NEW probability of the newly added element
+            # (is at least 1/#elements)
+            pNew = pOld+1
+            # If the OLD probability is 0, id est, the element was
+            # not counted before.
+            if pOld == 0:
+                # Just add the entropy of the NEW probability
+                # (== H(1/#elements)).
+                self.entropy -= self.h[pNew]
+            # Otherwise
             else:
-                p = self.count[ret] / elements
-                self.entropy -= p * math.log(p,2)
-
-            # If the added element is new in the queue,
-            # set its counter to 1.
-            if elem not in self.count:
-                self.count[elem] = 1
-            # Otherwise, calculate the old probability of the new element,
-            # and remove it from the sum.
-            else:
-                p = self.count[elem] / elements
-                self.entropy += p * math.log(p,2)
-                # Increment the counter of the new element.
-                self.count[elem] += 1
-
-            # Calculate the new probability of the added element,
-            # and add it to the sum.
-            p = self.count[elem] / elements
-            self.entropy -= p *  math.log(p,2)
-        else:
-            if elem in self.count:
-                self.count[elem] += 1
-            else:
-                self.count[elem] = 1
+                # Subtract the entropy of the OLD probability,
+                # and add the entropy of the NEW one.
+                self.entropy += self.h[pOld] - self.h[pNew]
+            # Increment the counter then.
+            self.incrementCount(elem)
+            # If the queue dropped an element
+            if ret:
+                # calculate the OLD probability of this dropped element
+                pOld = self.getCount(ret)
+                # calculate the NEW probability of this dropped element
+                # (may be 0).
+                pNew = pOld-1
+                # If the NEW probability is 0
+                if pNew == 0:
+                    # Just subtract the respective entropy
+                    self.entropy += self.h[pOld]
+                # Otherwise
+                else:
+                    # Subtrackt the entropy of the OLD probability
+                    # and add the entropy of the NEW one.
+                    self.entropy += self.h[pOld] - self.h[pNew]
+                # Decrement the counter then.
+                self.decrementCount(ret)
 
 
     def getEntropy(self):
@@ -158,7 +189,7 @@ class Entropytracker:
         # Return the entropy only, if the queue is sufficiently filled,
         # for it would not be valid otherwise.
         if self.queue.isFilled() or self.size == None:
-            if self.size == None or self.entropy == 0:
+            if self.size == None and self.entropy == None:
                 self.calculateEntropy()
             return self.entropy
         else:
@@ -270,6 +301,8 @@ class CNF:
             return []
 
 
+
+
 class Assignment:
 
     def __init__(self, atoms = None, varCount = None, seed = None):
@@ -347,6 +380,8 @@ class Assignment:
             l += 1
 
         return toReturn
+
+
 
 class Breakscore:
     def __init__(self, formula, assignment, falselist):
