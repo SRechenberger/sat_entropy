@@ -7,6 +7,7 @@ def run(f):
     return f
 
 class Experiment:
+    # TODO needs overhaul!!!
 
     def __init__(self, solverconstr, directory, config = dict(), poolsize = 1):
         if type(config) is not dict:

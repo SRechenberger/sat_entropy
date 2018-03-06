@@ -2,6 +2,7 @@ from sat.utils import *
 import sys
 
 class ProbSAT:
+    # TODO needs overhaul!!!
 
     defaultCB = {3: {'poly': 2.38, 'exp' : 2.5},
                  4: {'poly': 3.0,  'exp' : 3.0},
