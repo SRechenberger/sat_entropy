@@ -110,3 +110,6 @@ venv.bak/
 
 # ing-prefix
 ign_*
+
+# output stuff
+*.out
