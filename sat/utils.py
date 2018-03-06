@@ -194,6 +194,9 @@ class Entropytracker:
             return self.entropy
         else:
             return None
+
+
+
 class CNF:
     """ Models CNF-Formulas in the DIMACS format """
 

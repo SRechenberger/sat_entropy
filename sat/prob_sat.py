@@ -1,4 +1,5 @@
 from sat.utils import *
+import sys
 
 class ProbSAT:
 
@@ -23,7 +24,15 @@ class ProbSAT:
                              .format(self.func))
 
 
-    def __init__(self, formula, cb=None, maxFlips=None, maxTries=None, func='poly'):
+    def __init__(self,
+                 formula,
+                 cb=None,
+                 maxFlips=None,
+                 maxTries=None,
+                 func='poly',
+                 minEntropyF=None,
+                 lookBack=None,
+                 seed=None,):
         if isinstance(formula, CNF):
             self.formula = formula
         elif type(formula) == str:
@@ -31,7 +40,6 @@ class ProbSAT:
         else:
             raise TypeError("formula = {} is neither a cnf-formula nor a string"
                             .format(formula))
-
 
         if maxFlips == None:
             self.maxFlips = sys.maxsize
@@ -64,9 +72,22 @@ class ProbSAT:
         self.flips = 0
         self.tries = 0
         self.earlyRestarts = 0
+        self.result = None
+        self.sat=None
+        self.assignment = None
+
+        self.withLookBack = type(minEntropyF) == float and type(lookBack) == int
+        if self.withLookBack and (minEntropyF < 0 or minEntropyF > 1):
+            raise ValueError('minEntropyF={} should be between 0 and 1.'
+                             .format(minEntropyF))
+        if self.withLookBack:
+            self.minEntropy = math.log(self.formula.numVars,2)*minEntropyF
+
+        self.lookBack = lookBack
+        self.seed = seed
 
 
-    def initWalk(self, seed=None):
+    def initWalk(self, seed):
         # Init empty list of false clauses
         self.falseClauses = Falselist()
         # Init random assignment
@@ -78,25 +99,18 @@ class ProbSAT:
                                        self.assignment,
                                        self.falseClauses)
 
-    def __call__(self, seed=None, minEntropyF=None, lookBack=None):
-        return self.solve(seed, minEntropyF, lookBack)
+    def __call__(self):
+        self.solve(self.seed)
 
-    def solve(self, seed=None, minEntropyF=None, lookBack=None):
-        withLookBack = type(minEntropyF) == float and type(lookBack) == int
-        if withLookBack and (minEntropyF < 0 or minEntropyF > 1):
-            raise ValueError('minEntropyF={} should be between 0 and 1.'
-                             .format(minEntropyF))
-        if withLookBack:
-            minEntropy = math.log(self.formula.numVars,2)*minEntropyF
-
-        for t in range(0, self.maxTries):
+    def solve(self, seed):
+        for t in range(1, self.maxTries+1):
             # print('c Try #{}'.format(t))
             self.tries = t
             self.initWalk(seed)
             minUnsat = len(self.falseClauses)
-            if withLookBack:
-                walkTracker = Entropytracker(size=lookBack)
-            for f in range(0, self.maxFlips):
+            if self.withLookBack:
+                walkTracker = Entropytracker(size=self.lookBack)
+            for f in range(1, self.maxFlips+1):
 
                 self.flips = f
                 unsat = len(self.falseClauses)
@@ -105,7 +119,8 @@ class ProbSAT:
                 # if (a is model for F) then
                 #   reeturn a
                 if unsat == 0:
-                    return True
+                    self.sat = True
+                    return
                 # C_u <- randomly selected unsat clause
                 ci  = self.falseClauses.lst[random.randint(0, unsat-1)]
                 c   = self.formula.clauses[ci]
@@ -125,18 +140,11 @@ class ProbSAT:
                                      self.assignment,
                                      self.falseClauses)
                 self.tracker.add(abs(lit))
-                if withLookBack:
+                if self.withLookBack:
                     walkTracker.add(abs(lit))
                     h = walkTracker.getEntropy()
-                    if not h == None and h < minEntropy:
-                        # print('c Early break at h={} (flips={}) {} < {}'
-                        #      .format(h, f, minUnsat, unsat))
+                    if not h == None and h < self.minEntropy:
                         self.earlyRestarts += 1
                         break
 
-            # print('c unsat clauses: {} (min: {})'
-            #      .format(len(self.falseClauses), minUnsat))
-
-
-
-        return False
+        self.sat = False
