@@ -196,6 +196,9 @@ class Entropytracker:
             return None
 
 
+    def __len__(self):
+        return len(self.queue)
+
 
 class CNF:
     """ Models CNF-Formulas in the DIMACS format """
@@ -253,7 +256,7 @@ class CNF:
             if len(occ) > self.maxOccs:
                 self.maxOccs = len(occ)
 
-
+        self.ratio = self.numClauses / self.numVars
         self.isInit = True
 
 

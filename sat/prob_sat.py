@@ -33,7 +33,7 @@ class ProbSAT:
                  func='poly',
                  minEntropyF=None,
                  lookBack=None,
-                 seed=None,):
+                 seed=None):
         if isinstance(formula, CNF):
             self.formula = formula
         elif type(formula) == str:
@@ -86,6 +86,7 @@ class ProbSAT:
 
         self.lookBack = lookBack
         self.seed = seed
+        self.averageEntropy = 0
 
 
     def initWalk(self, seed):
@@ -104,6 +105,7 @@ class ProbSAT:
         self.solve(self.seed)
 
     def solve(self, seed):
+        entropySum = 0
         for t in range(1, self.maxTries+1):
             # print('c Try #{}'.format(t))
             self.tries = t
@@ -121,6 +123,8 @@ class ProbSAT:
                 #   reeturn a
                 if unsat == 0:
                     self.sat = True
+                    entropySum += self.tracker.getEntropy()
+                    self.averageEntropy = entropySum / self.tries
                     return
                 # C_u <- randomly selected unsat clause
                 ci  = self.falseClauses.lst[random.randint(0, unsat-1)]
@@ -148,4 +152,7 @@ class ProbSAT:
                         self.earlyRestarts += 1
                         break
 
+            entropySum += self.tracker.getEntropy()
+
+        self.averageEntropy = entropySum / self.tries
         self.sat = False
