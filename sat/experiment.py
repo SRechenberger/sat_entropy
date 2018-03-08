@@ -19,13 +19,16 @@ class Experiment:
                  solver   = None,
                  config   = dict(),
                  verbose  = False,
+                 seed     = None,
                  log      = sys.stdout):
         self.verbose=verbose
         self.log=log
         self.setupFormulae(directory)
         self.poolsize = poolsize
+        self.config = config
+        self.seed = None
         if solver:
-            self.setupSolvers(solver, config)
+            self.solver=solver
             self.ready=True
         else:
             self.ready=False
@@ -69,7 +72,7 @@ class Experiment:
         #   os.listdir directory
         #   >>> filter (\f -> f.endswith('.cnf'))
         #   >>> map CNF
-        self.formulae = list(map(lambda f: CNF(os.path.join(directory, f)),
+        self.formulae = list(map(lambda f: os.path.join(directory, f),
                                  filter(lambda f: f.endswith('.cnf'),
                                         os.listdir(directory))))
 
@@ -85,9 +88,22 @@ class Experiment:
                   file=self.log)
 
 
-    def _run(self,f):
-        f()
-        return f
+    def _runSolver(self, filepath):
+        solver = self.solver(filepath,**self.config)
+        solver.solve(self.seed)
+        return dict(
+            variables     = solver.formula.numVars,
+            clauses       = solver.formula.numClauses,
+            ratio         = solver.formula.ratio,
+            cb            = solver.cb,
+            sat           = 1 if solver.sat else 0,
+            # assignment    = solver.assignment,
+            tries         = solver.tries,
+            flips         = solver.flips,
+            totalFlips    = (solver.tries * solver.maxFlips + solver.flips) * (10 if solver.sat == 1 else 1),
+            earlyRestarts = solver.earlyRestarts,
+            entropy       = solver.averageEntropy
+        )
 
     def runExperiment(self):
         if self.verbose:
@@ -102,11 +118,12 @@ class Experiment:
             raise RuntimeWarning('Experiment already run!')
 
 
+
         with Pool(processes=self.poolsize) as pool:
             log = self.log
             del self.log
             begin = time.time()
-            self.solvers = pool.map(self._run, self.solvers)
+            self.results = pool.map(self._runSolver, self.formulae)
             end = time.time()
             self.log = log
 
@@ -120,20 +137,6 @@ class Experiment:
             print(' ...solvers run; took {}h{}m{}s'.format(hours, mins, secs),
                   file=self.log,
                   flush=True)
-
-        self.results=[]
-        for solver in self.solvers:
-            self.results.append(dict(
-                variables     = solver.formula.numVars,
-                clauses       = solver.formula.numClauses,
-                ratio         = solver.formula.ratio,
-                cb            = solver.cb,
-                sat           = 1 if solver.sat else 0,
-                # assignment    = solver.assignment,
-                tries         = solver.tries,
-                flips         = solver.flips,
-                earlyRestarts = solver.earlyRestarts,
-                entropy       = solver.averageEntropy))
 
         self.executed = True
 
@@ -169,9 +172,9 @@ class Experiment:
             template += '}'
 
             return template.format(field)
-
-        if label:
-            toReturn = ""
+        
+        toReturn = ""
+        if label:            
             for c in columns[:-1]:
                 toReturn += formatField(c) + ','
             toReturn += formatField(columns[-1]) + '\n'

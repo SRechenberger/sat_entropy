@@ -1,4 +1,5 @@
 from sat.utils import *
+import time
 import sys
 
 class ProbSAT:
@@ -106,6 +107,9 @@ class ProbSAT:
 
     def solve(self, seed):
         entropySum = 0
+        averageFlipTime=0
+        minimalFlipTime=sys.maxsize
+        maximalFlipTime=0
         for t in range(1, self.maxTries+1):
             # print('c Try #{}'.format(t))
             self.tries = t
@@ -114,6 +118,7 @@ class ProbSAT:
             if self.withLookBack:
                 walkTracker = Entropytracker(size=self.lookBack)
             for f in range(1, self.maxFlips+1):
+                begin = time.time()
 
                 self.flips = f
                 unsat = len(self.falseClauses)
@@ -151,6 +156,7 @@ class ProbSAT:
                     if not h == None and h < self.minEntropy:
                         self.earlyRestarts += 1
                         break
+                end = time.time()
 
             entropySum += self.tracker.getEntropy()
 
