@@ -106,6 +106,7 @@ class ProbSAT:
         self.solve(self.seed)
 
     def solve(self, seed):
+        begin = time.time()
         entropySum = 0
         averageFlipTime=0
         minimalFlipTime=sys.maxsize
@@ -129,6 +130,8 @@ class ProbSAT:
                     self.sat = True
                     entropySum += self.tracker.getEntropy()
                     self.averageEntropy = entropySum / self.tries
+                    end = time.time()
+                    self.flipsPerSecond = (t * self.maxFlips + f) / (end - begin)
                     return
                 # C_u <- randomly selected unsat clause
                 ci  = self.falseClauses.lst[random.randint(0, unsat-1)]
@@ -159,4 +162,6 @@ class ProbSAT:
             entropySum += self.tracker.getEntropy()
 
         self.averageEntropy = entropySum / self.tries
+        end = time.time()
+        self.flipsPerSecond = (t * self.maxFlips + f) / (end - begin)
         self.sat = False
