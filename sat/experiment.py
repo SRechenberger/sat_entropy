@@ -1,6 +1,7 @@
 import os
 import sys
 import time
+import random
 from io import IOBase
 from sat.utils import CNF
 from multiprocessing import Pool
@@ -20,10 +21,17 @@ class Experiment:
                  config   = dict(),
                  verbose  = False,
                  seed     = None,
+                 prob     = 1,
                  log      = sys.stdout):
+        if prob > 1 or prob <= 0:
+            raise ValueError(
+                'prob={} must be in (0,1].'
+                .format(prob)
+            )
+
         self.verbose=verbose
         self.log=log
-        self.setupFormulae(directory)
+        self.setupFormulae(directory, prob)
         self.poolsize = poolsize
         self.config = config
         self.seed = None
@@ -57,7 +65,7 @@ class Experiment:
                   file=self.log)
 
 
-    def setupFormulae(self, directory):
+    def setupFormulae(self, directory, prob):
         if self.verbose:
             print('Setting up formulae... ',
                   flush=True,
@@ -72,9 +80,16 @@ class Experiment:
         #   os.listdir directory
         #   >>> filter (\f -> f.endswith('.cnf'))
         #   >>> map CNF
-        self.formulae = list(map(lambda f: os.path.join(directory, f),
-                                 filter(lambda f: f.endswith('.cnf'),
-                                        os.listdir(directory))))
+        while not hasattr(self, 'formulae') or len(self.formulae) < 1:
+            self.formulae = list(
+                map(
+                    lambda f: os.path.join(directory, f),
+                    filter(
+                        lambda f: f.endswith('.cnf') and random.random() < prob,
+                        os.listdir(directory)
+                    )
+                )
+            )
 
         # Raise a waring, if the directory is empty,
         # and no output is to be expected.
@@ -92,17 +107,18 @@ class Experiment:
         solver = self.solver(filepath,**self.config)
         solver.solve(self.seed)
         return dict(
-            variables     = solver.formula.numVars,
-            clauses       = solver.formula.numClauses,
-            ratio         = solver.formula.ratio,
-            cb            = solver.cb,
-            sat           = 1 if solver.sat else 0,
+            variables      = solver.formula.numVars,
+            clauses        = solver.formula.numClauses,
+            ratio          = solver.formula.ratio,
+            cb             = solver.cb,
+            sat            = 1 if solver.sat else 0,
             # assignment    = solver.assignment,
-            tries         = solver.tries,
-            flips         = solver.flips,
-            totalFlips    = (solver.tries * solver.maxFlips + solver.flips) * (10 if solver.sat == 1 else 1),
-            earlyRestarts = solver.earlyRestarts,
-            entropy       = solver.averageEntropy
+            tries          = solver.tries,
+            flips          = solver.flips,
+            totalFlips     = (solver.tries * solver.maxFlips + solver.flips) * (10 if solver.sat == 1 else 1),
+            earlyRestarts  = solver.earlyRestarts,
+            entropy        = solver.averageEntropy,
+            flipsPerSecond = solver.flipsPerSecond
         )
 
     def runExperiment(self):
