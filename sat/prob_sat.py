@@ -105,6 +105,11 @@ class ProbSAT:
     def __call__(self):
         self.solve(self.seed)
 
+    def choose(seq, weights):
+        sum = 0
+	for w in weights:
+	    
+
     def solve(self, seed):
         begin = time.time()
         entropySum = 0
@@ -144,7 +149,7 @@ class ProbSAT:
 
                 # var <- random variable x according to probability
                 #   f(x,a)/sum(x in C_u, f(x,a))
-                lit = random.choices(c, weights=ws)[0]
+                lit = choose(c, ws)
 
                 # flip(var)
                 self.scoreboard.flip(abs(lit),

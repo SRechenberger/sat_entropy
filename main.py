@@ -154,14 +154,14 @@ if __name__ == '__main__':
     #    (3, 500, 4.2): os.path.join(root,'unif-k3-r4.2-v500-c2100')
         (3, 1000, 4.0): os.path.join(root,'unif-k3-r4.0-v1000-c4000'),
         (3, 1000, 4.1): os.path.join(root,'unif-k3-r4.1-v1000-c4100'),
-        (3, 1000, 4.2): os.path.join(root,'unif-k3-r4.2-v1000-c4200')
+        (3, 1000, 4.2): os.path.join(root,'unif-k3-r4.2-v1000-c4200'),
+        (3, 1000, 4.26): os.path.join(root,'unif-k3-r4.26-v1000-c4260')
     }
     experiment1(
         solver            = ProbSAT,
         input_directories = dirs,
         output_directory  = sys.argv[2],
         output_file_name  = sys.argv[3],
-        poolsize          = 6,
-        logstream         = sys.stderr,
+        poolsize          = int(sys.argv[4]),
         verbose           = False
     )
