@@ -212,7 +212,7 @@ class CNF:
         self.numClauses = 0
         self.numVars = 0
         self.comments = []
-        self.occurrences = {}
+        self.occurrences = []
 
         if filepath == None:
             self.isInit = False
@@ -244,15 +244,15 @@ class CNF:
                 else:
                     self.clauses.append(list(map(int, r.findall(line)))[:-1])
 
+        for i in range(0, self.numVars*2+1):
+            self.occurrences.append([])
+
         for idx in range(0, self.numClauses):
             for literal in self.clauses[idx]:
-                if literal in self.occurrences:
-                    self.occurrences[literal].append(idx)
-                else:
-                    self.occurrences[literal] = [idx]
+                self.occurrences[self.numVars + literal].append(idx)
 
         self.maxOccs = 0
-        for _, occ in self.occurrences.items():
+        for occ in self.occurrences:
             if len(occ) > self.maxOccs:
                 self.maxOccs = len(occ)
 
@@ -301,10 +301,7 @@ class CNF:
             raise RuntimeError("Formula not initialized yet.")
 
     def getOccurrences(self, literal):
-        if literal in self.occurrences:
-            return self.occurrences[literal]
-        else:
-            return []
+        return self.occurrences[self.numVars + literal]
 
 
 
