@@ -55,7 +55,7 @@ def experiment1(
         verbose  = verbose,
         log      = sys.stderr,
         solver   = solver,
-        prob     = 1,
+        prob     = 0.1,
         config   = dict(
             maxTries = 100
         )
