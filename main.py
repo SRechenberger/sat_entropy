@@ -13,7 +13,7 @@ def log(msg, streams, **kwargs):
         if stream and isinstance(stream, io.IOBase):
             print(msg, file=stream, flush=True, **kwargs)
 
-def experiment1(
+def experiment(
     solver                 = None,
     input_directories      = dict(),
     output_directory       = '.',
@@ -23,7 +23,8 @@ def experiment1(
     log_file_suffix        = 'log',
     logstream              = None,
     poolsize               = 1,
-    verbose                = False
+    verbose                = False,
+    prob                   = 1
     ):
 
 
@@ -55,7 +56,7 @@ def experiment1(
         verbose  = verbose,
         log      = sys.stderr,
         solver   = solver,
-        prob     = 0.1,
+        prob     = prob,
         config   = dict(
             maxTries = 100
         )
@@ -84,11 +85,11 @@ def experiment1(
                 dirBegin = time.time()
                 log('  BEGIN directory {}'.format(dir), [logfile, logstream])
 
-                for cb in range(0, 20):
+                for cb in range(0, 40):
                     cbBegin = time.time()
-                    log('    BEGIN cb {:.2f}'.format(cb*2 / 10), [logfile, logstream], end='')
+                    log('    BEGIN cb {:.2f}'.format(cb / 10), [logfile, logstream], end='')
 
-                    config['config']['cb'] = cb*2 / 10
+                    config['config']['cb'] = cb / 10
                     config['config']['maxFlips'] = 50 * vars
 
                     exp = Experiment(dir, **config)
@@ -157,12 +158,13 @@ if __name__ == '__main__':
        (3, 1000, 4.2): os.path.join(root,'unif-k3-r4.2-v1000-c4200'),
        (3, 1000, 4.26): os.path.join(root,'unif-k3-r4.26-v1000-c4260')
     }
-    experiment1(
+    experiment(
         solver            = ProbSAT,
         input_directories = dirs,
         output_directory  = sys.argv[2],
         output_file_name  = sys.argv[3],
         poolsize          = int(sys.argv[4]),
         logstream         = sys.stderr,
+	prob 	          = 0.2,
         verbose           = False
     )

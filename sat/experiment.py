@@ -80,19 +80,19 @@ class Experiment:
         #   os.listdir directory
         #   >>> filter (\f -> f.endswith('.cnf'))
         #   >>> map CNF
-            self.formulae = list(
-                map(
-                    lambda f: os.path.join(directory, f),
-                    filter(
-                        lambda f: f.endswith('.cnf'),
-                        os.listdir(directory)
-                    )
+        self.formulae = list(
+            map(
+                lambda f: os.path.join(directory, f),
+                filter(
+                    lambda f: f.endswith('.cnf'),
+                    os.listdir(directory)
                 )
             )
-            self.formulae = random.sample(
-                self.formulae,
-                int(len(self.formulae)*prob)
-            )
+        )
+        self.formulae = random.sample(
+            self.formulae,
+            int(len(self.formulae)*prob)
+        )
 
         # Raise a waring, if the directory is empty,
         # and no output is to be expected.
