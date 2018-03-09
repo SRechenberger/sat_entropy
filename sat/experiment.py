@@ -80,15 +80,18 @@ class Experiment:
         #   os.listdir directory
         #   >>> filter (\f -> f.endswith('.cnf'))
         #   >>> map CNF
-        while not hasattr(self, 'formulae') or len(self.formulae) < 1:
             self.formulae = list(
                 map(
                     lambda f: os.path.join(directory, f),
                     filter(
-                        lambda f: f.endswith('.cnf') and random.random() < prob,
+                        lambda f: f.endswith('.cnf'),
                         os.listdir(directory)
                     )
                 )
+            )
+            self.formulae = random.sample(
+                self.formulae,
+                int(len(self.formulae)*prob)
             )
 
         # Raise a waring, if the directory is empty,
@@ -188,9 +191,9 @@ class Experiment:
             template += '}'
 
             return template.format(field)
-        
+
         toReturn = ""
-        if label:            
+        if label:
             for c in columns[:-1]:
                 toReturn += formatField(c) + ','
             toReturn += formatField(columns[-1]) + '\n'
