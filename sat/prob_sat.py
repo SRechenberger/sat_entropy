@@ -164,8 +164,8 @@ class ProbSAT:
 
                 # var <- random variable x according to probability
                 #   f(x,a)/sum(x in C_u, f(x,a))
-                # lit = choose(c, ws)
-                lit = random.choices(c, weights=ws)[0]
+                lit = choose(c, ws)
+                # lit = random.choices(c, weights=ws)[0]
 
                 # flip(var)
                 self.scoreboard.flip(abs(lit),
