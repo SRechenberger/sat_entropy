@@ -165,6 +165,6 @@ if __name__ == '__main__':
         output_file_name  = sys.argv[3],
         poolsize          = int(sys.argv[4]),
         logstream         = sys.stderr,
-	prob 	          = 0.2,
+        prob              = 0.2,
         verbose           = False
     )
