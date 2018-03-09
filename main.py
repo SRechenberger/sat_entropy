@@ -145,17 +145,17 @@ def experiment1(
 
 if __name__ == '__main__':
     root = sys.argv[1]
-    dirs = { 
-    #    (3, 10, 4.0): os.path.join(root,'unif-k3-r4.0-v10-c40'),
-    #    (3, 10, 4.1): os.path.join(root,'unif-k3-r4.1-v10-c41'),
-    #    (3, 10, 4.2): os.path.join(root,'unif-k3-r4.2-v10-c42')
-    #    (3, 500, 4.0): os.path.join(root,'unif-k3-r4.0-v500-c2000'),
-    #    (3, 500, 4.1): os.path.join(root,'unif-k3-r4.1-v500-c2050'),
-    #    (3, 500, 4.2): os.path.join(root,'unif-k3-r4.2-v500-c2100')
-        (3, 1000, 4.0): os.path.join(root,'unif-k3-r4.0-v1000-c4000'),
-        (3, 1000, 4.1): os.path.join(root,'unif-k3-r4.1-v1000-c4100'),
-        (3, 1000, 4.2): os.path.join(root,'unif-k3-r4.2-v1000-c4200'),
-        (3, 1000, 4.26): os.path.join(root,'unif-k3-r4.26-v1000-c4260')
+    dirs = {
+    #   (3, 10, 4.0): os.path.join(root,'unif-k3-r4.0-v10-c40'),
+    #   (3, 10, 4.1): os.path.join(root,'unif-k3-r4.1-v10-c41'),
+    #   (3, 10, 4.2): os.path.join(root,'unif-k3-r4.2-v10-c42')
+    #   (3, 500, 4.0): os.path.join(root,'unif-k3-r4.0-v500-c2000'),
+    #   (3, 500, 4.1): os.path.join(root,'unif-k3-r4.1-v500-c2050'),
+    #   (3, 500, 4.2): os.path.join(root,'unif-k3-r4.2-v500-c2100')
+       (3, 1000, 4.0): os.path.join(root,'unif-k3-r4.0-v1000-c4000'),
+       (3, 1000, 4.1): os.path.join(root,'unif-k3-r4.1-v1000-c4100'),
+       (3, 1000, 4.2): os.path.join(root,'unif-k3-r4.2-v1000-c4200'),
+       (3, 1000, 4.26): os.path.join(root,'unif-k3-r4.26-v1000-c4260')
     }
     experiment1(
         solver            = ProbSAT,
