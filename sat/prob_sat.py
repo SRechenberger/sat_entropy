@@ -1,6 +1,7 @@
 from sat.utils import *
 import time
 import sys
+import random
 
 class ProbSAT:
     # TODO needs overhaul!!!
@@ -105,12 +106,24 @@ class ProbSAT:
     def __call__(self):
         self.solve(self.seed)
 
-    def choose(seq, weights):
-        sum = 0
-	for w in weights:
-	    
+
+
 
     def solve(self, seed):
+        def choose(seq, weights):
+            s = sum(weights)
+            acc = s
+
+            r = random.random() * s
+            for (e,w) in zip(seq, weights):
+                t = e
+                acc -= w
+                if r >= acc:
+                    break
+
+            return t
+
+
         begin = time.time()
         entropySum = 0
         averageFlipTime=0
