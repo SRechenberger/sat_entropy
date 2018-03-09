@@ -89,7 +89,7 @@ def experiment1(
                     log('    BEGIN cb {:.2f}'.format(cb*2 / 10), [logfile, logstream], end='')
 
                     config['config']['cb'] = cb*2 / 10
-                    config['config']['maxFlips'] = 20 * vars
+                    config['config']['maxFlips'] = 50 * vars
 
                     exp = Experiment(dir, **config)
                     exp.runExperiment()
@@ -163,5 +163,6 @@ if __name__ == '__main__':
         output_directory  = sys.argv[2],
         output_file_name  = sys.argv[3],
         poolsize          = int(sys.argv[4]),
+        logstream         = sys.stderr,
         verbose           = False
     )

@@ -115,9 +115,9 @@ class ProbSAT:
             acc = s
 
             r = random.random() * s
-            for (e,w) in zip(seq, weights):
-                t = e
-                acc -= w
+            for i in range(0,len(weights)):
+                t = seq[i]
+                acc -= weights[i]
                 if r >= acc:
                     break
 
@@ -130,6 +130,8 @@ class ProbSAT:
         minimalFlipTime=sys.maxsize
         maximalFlipTime=0
         for t in range(1, self.maxTries+1):
+            if time.time() - begin > 20:
+                break
             # print('c Try #{}'.format(t))
             self.tries = t
             self.initWalk(seed)
@@ -162,7 +164,8 @@ class ProbSAT:
 
                 # var <- random variable x according to probability
                 #   f(x,a)/sum(x in C_u, f(x,a))
-                lit = choose(c, ws)
+                # lit = choose(c, ws)
+                lit = random.choices(c, weights=ws)[0]
 
                 # flip(var)
                 self.scoreboard.flip(abs(lit),
