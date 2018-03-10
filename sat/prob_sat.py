@@ -21,9 +21,12 @@ class ProbSAT:
         elif self.func == 'exp':
             self.probs = []
             for i in range(0, self.formula.maxOccs+1):
-                self.probs.append(
-                    pow(self.cb, -i) if self.cb > 0 else 1
-                )
+                if i > 308 and self.cb < 1:
+                    self.probs.append(int(1/self.cb)**-(i-1))
+                else:
+                    self.probs.append(
+                        (self.cb ** -i) if self.cb > 0 else 1
+                    )
         else:
             raise ValueError('func=\'{}\' must either be \'poly\' or \'exp\'.'
                              .format(self.func))
