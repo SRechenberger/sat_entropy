@@ -99,16 +99,6 @@ class Entropytracker:
         return entropy
 
 
-
-    def incrementCount(self, elem):
-        self.count[elem] += 1
-
-    def decrementCount(self, elem):
-        self.count[elem] -= 1
-
-    def getCount(self,elem):
-        return self.count[elem]
-
     def add(self, elem):
         """ Adds a new element to the queue, and updates the entropy,
         if the queue is of limited size.
@@ -119,7 +109,7 @@ class Entropytracker:
         ret = self.queue.write(elem)
         # Calculate the OLD probability of the newly added element
         # (may be 0).
-        pOld = self.getCount(elem)
+        pOld = self.count[elem]
         # Calculate the NEW probability of the newly added element
         # (is at least 1/#elements)
         pNew = pOld+1
@@ -135,11 +125,11 @@ class Entropytracker:
             # and add the entropy of the NEW one.
             self.entropy += self.h[pOld] - self.h[pNew]
         # Increment the counter then.
-        self.incrementCount(elem)
+        self.count[elem] += 1
         # If the queue dropped an element
         if ret:
             # calculate the OLD probability of this dropped element
-            pOld = self.getCount(ret)
+            pOld = self.count[ret]
             # calculate the NEW probability of this dropped element
             # (may be 0).
             pNew = pOld-1
@@ -153,7 +143,7 @@ class Entropytracker:
                 # and add the entropy of the NEW one.
                 self.entropy += self.h[pOld] - self.h[pNew]
             # Decrement the counter then.
-            self.decrementCount(ret)
+            self.count[ret] -= 1
 
 
     def getEntropy(self):
