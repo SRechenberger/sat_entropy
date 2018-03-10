@@ -24,7 +24,8 @@ def experiment(
     logstream              = None,
     poolsize               = 1,
     verbose                = False,
-    prob                   = 1
+    prob                   = 1,
+    timeLimit              = None
     ):
 
 
@@ -52,8 +53,7 @@ def experiment(
         solver   = solver,
         prob     = prob,
         config   = dict(
-            timeLimit = 20,
-            maxTries = 1000
+            timeLimit = timeLimit,
         )
     )
 
@@ -70,7 +70,7 @@ def experiment(
             for (k, vars, ratio), dir in input_directories.items():
                 dirBegin = time.time()
                 log('  BEGIN directory {}'.format(dir), [logfile, logstream])
-                for cb in [0.0]:
+                for cb in cbs:
                     cbBegin = time.time()
                     log('    BEGIN cb {:.2f}'.format(cb), [logfile, logstream], end='')
 
@@ -130,5 +130,6 @@ if __name__ == '__main__':
         poolsize          = int(sys.argv[5]),
         logstream         = sys.stderr,
         prob              = 1,
-        verbose           = False
+        verbose           = False,
+        timeLimit         = int(sys.argv[6])
     )
