@@ -58,11 +58,15 @@ def experiment(
         solver   = solver,
         prob     = prob,
         config   = dict(
-            maxTries = 100
+            timeLimit = 100
         )
     )
 
     raw = 0
+    cbs = map(
+        lambda x: x/10,
+        range(0,40)
+    )
     with open(output_file_path, 'w') as outfile:
         with open(log_file_path, 'w') as logfile:
             # f(vars,ratio,cb) = (medianRuntime, medianEntropy)
@@ -85,7 +89,7 @@ def experiment(
                 dirBegin = time.time()
                 log('  BEGIN directory {}'.format(dir), [logfile, logstream])
 
-                for cb in range(0, 40):
+                for cb in cbs:
                     cbBegin = time.time()
                     log('    BEGIN cb {:.2f}'.format(cb / 10), [logfile, logstream], end='')
 
@@ -153,10 +157,10 @@ if __name__ == '__main__':
     #   (3, 500, 4.0): os.path.join(root,'unif-k3-r4.0-v500-c2000'),
     #   (3, 500, 4.1): os.path.join(root,'unif-k3-r4.1-v500-c2050'),
     #   (3, 500, 4.2): os.path.join(root,'unif-k3-r4.2-v500-c2100')
-       (3, 1000, 4.0): os.path.join(root,'unif-k3-r4.0-v1000-c4000'),
+    #   (3, 1000, 4.0): os.path.join(root,'unif-k3-r4.0-v1000-c4000'),
        (3, 1000, 4.1): os.path.join(root,'unif-k3-r4.1-v1000-c4100'),
-       (3, 1000, 4.2): os.path.join(root,'unif-k3-r4.2-v1000-c4200'),
-       (3, 1000, 4.26): os.path.join(root,'unif-k3-r4.26-v1000-c4260')
+    #   (3, 1000, 4.2): os.path.join(root,'unif-k3-r4.2-v1000-c4200'),
+    #   (3, 1000, 4.26): os.path.join(root,'unif-k3-r4.26-v1000-c4260')
     }
     experiment(
         solver            = ProbSAT,

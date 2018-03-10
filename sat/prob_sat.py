@@ -32,6 +32,7 @@ class ProbSAT:
                  cb=None,
                  maxFlips=None,
                  maxTries=None,
+                 timeLimit=None,
                  func='poly',
                  minEntropyF=None,
                  lookBack=None,
@@ -59,6 +60,15 @@ class ProbSAT:
         else:
             raise TypeError("maxTries={} is not of type int."
                             .format(maxTries))
+
+        if timeLimit == None:
+            self.timeLimit = None
+        elif type(timeLimit) == int:
+            self.timeLimit = timeLimit
+        else:
+            raise TypeError("timeLimit={} is not of type int."
+                            .format(timeLimit))
+
 
         if cb == None:
             self.cb = ProbSAT.defaultCB[max(map(len, self.formula.clauses))][func]
@@ -91,13 +101,14 @@ class ProbSAT:
         self.averageEntropy = 0
 
 
-    def initWalk(self, seed):
+    def initWalk(self):
         # Init empty list of false clauses
         self.falseClauses = Falselist()
         # Init random assignment
-        self.assignment   = Assignment(atoms=None,
-                                       varCount = self.formula.numVars,
-                                       seed=seed)
+        self.assignment   = Assignment(
+            atoms=None,
+            varCount = self.formula.numVars,
+        )
         # Init break scoreboard
         self.scoreboard   = Breakscore(self.formula,
                                        self.assignment,
@@ -123,6 +134,7 @@ class ProbSAT:
 
             return t
 
+        random.seed(seed)
 
         begin = time.time()
         entropySum = 0
@@ -130,11 +142,11 @@ class ProbSAT:
         minimalFlipTime=sys.maxsize
         maximalFlipTime=0
         for t in range(1, self.maxTries+1):
-            if time.time() - begin > 20:
-                break
             # print('c Try #{}'.format(t))
             self.tries = t
-            self.initWalk(seed)
+            if time.time() - begin > self.timeLimit:
+                break
+            self.initWalk()
             minUnsat = len(self.falseClauses)
             if self.withLookBack:
                 walkTracker = Entropytracker(size=self.lookBack)
