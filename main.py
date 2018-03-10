@@ -128,7 +128,7 @@ if __name__ == '__main__':
         output_directory  = sys.argv[3],
         output_file_name  = sys.argv[4],
         poolsize          = int(sys.argv[5]),
-        logstream         = sys.stderr,
+        # logstream         = sys.stderr,
         prob              = 1,
         verbose           = False,
         timeLimit         = int(sys.argv[6])
