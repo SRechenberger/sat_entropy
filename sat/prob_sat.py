@@ -21,7 +21,9 @@ class ProbSAT:
         elif self.func == 'exp':
             self.probs = []
             for i in range(0, self.formula.maxOccs+1):
-                self.probs.append(pow(self.cb, -i))
+                self.probs.append(
+                    pow(self.cb, -i) if self.cb > 0 else 1
+                )
         else:
             raise ValueError('func=\'{}\' must either be \'poly\' or \'exp\'.'
                              .format(self.func))
@@ -33,7 +35,7 @@ class ProbSAT:
                  maxFlips=None,
                  maxTries=None,
                  timeLimit=None,
-                 func='poly',
+                 func=None,
                  minEntropyF=None,
                  lookBack=None,
                  seed=None):
@@ -78,8 +80,14 @@ class ProbSAT:
             raise TypeError("cb={} is not of type float."
                             .format(cb))
 
-        self.func = func
-        self.eps = 1
+        if func:
+            self.func = func
+        elif self.formula.maxOccs <= 3:
+            self.func = 'poly'
+        else:
+            self.func = 'exp'
+
+        self.eps = 0.9
         self.initProbs()
         self.flips = 0
         self.tries = 0

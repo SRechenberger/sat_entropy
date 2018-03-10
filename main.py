@@ -52,14 +52,14 @@ def experiment(
         solver   = solver,
         prob     = prob,
         config   = dict(
-            timeLimit = 60,
+            timeLimit = 20,
             maxTries = 1000
         )
     )
 
     cbs = map(
         lambda x: x/10,
-        range(0,40)
+        range(0,50)
     )
     with open(output_file_path, 'w') as outfile:
         with open(log_file_path, 'w') as logfile:
@@ -70,7 +70,7 @@ def experiment(
             for (k, vars, ratio), dir in input_directories.items():
                 dirBegin = time.time()
                 log('  BEGIN directory {}'.format(dir), [logfile, logstream])
-                for cb in cbs:
+                for cb in [0.0]:
                     cbBegin = time.time()
                     log('    BEGIN cb {:.2f}'.format(cb), [logfile, logstream], end='')
 
