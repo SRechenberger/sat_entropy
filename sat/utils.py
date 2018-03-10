@@ -16,7 +16,7 @@ class Queue:
     def isFilled(self):
         if self.size == None:
             return True
-        return len(self.lst) >= self.size
+        return self.filled >= self.size
 
 
     def write(self, elem):
@@ -78,55 +78,36 @@ class Falselist:
 
 
 class Entropytracker:
-    def __init__(self, size = None):
+    def __init__(self, size, symbols):
         self.queue = Queue(size)
-        self.count = {}
-        if size:
-            self.entropy = 0
-        else:
-            self.entropy = None
+        self.count = [0]*(symbols+1)
+        self.entropy = 0
         self.size = size
         self.isInit = False
-        if size:
-            self.h = [0]
-            for x in range(1, self.size+1):
-                p = x/self.size
-                self.h.append(p*math.log(p,2))
+        self.h = [None]*(self.size+1)
+        for x in range(1, self.size+1):
+            p = x/self.size
+            self.h[x] = p*math.log(p,2)
 
 
     def calculateEntropy(self):
-        self.entropy = 0
-        if self.size == None:
-            elements = len(self.queue.lst)
-        else:
-            elements = self.size
+        entropy = 0
+        for c in self.count:
+            if c > 0:
+                p = c/len(self.queue)
+                entropy -= p*math.log(p,2)
+        return entropy
 
-        if not self.isInit or self.size == None:
-            for _, cnt in self.count.items():
-                p = cnt / elements
-                self.entropy -= p * math.log(p,2)
-            self.isInit = True and self.size != None
+
 
     def incrementCount(self, elem):
-        if elem in self.count:
-            self.count[elem] += 1
-        else:
-            self.count[elem] = 1
-
+        self.count[elem] += 1
 
     def decrementCount(self, elem):
-        if elem in self.count:
-            self.count[elem] -= 1
-        else:
-            raise ValueError("elem={} has never been counted.".format(elem))
-
+        self.count[elem] -= 1
 
     def getCount(self,elem):
-        if elem in self.count:
-            return self.count[elem]
-        else:
-            return 0
-
+        return self.count[elem]
 
     def add(self, elem):
         """ Adds a new element to the queue, and updates the entropy,
@@ -136,64 +117,55 @@ class Entropytracker:
         # If the queue is filled, it drops a value, if a new one is added;
         # this value is then to be deleted from the tracker.
         ret = self.queue.write(elem)
-        # If there is no fixed size
-        if self.size == None:
-            # Just count the element
-            self.incrementCount(elem)
-        # otherwise
+        # Calculate the OLD probability of the newly added element
+        # (may be 0).
+        pOld = self.getCount(elem)
+        # Calculate the NEW probability of the newly added element
+        # (is at least 1/#elements)
+        pNew = pOld+1
+        # If the OLD probability is 0, id est, the element was
+        # not counted before.
+        if pOld == 0:
+            # Just add the entropy of the NEW probability
+            # (== H(1/#elements)).
+            self.entropy -= self.h[pNew]
+        # Otherwise
         else:
-            # Calculate the OLD probability of the newly added element
+            # Subtract the entropy of the OLD probability,
+            # and add the entropy of the NEW one.
+            self.entropy += self.h[pOld] - self.h[pNew]
+        # Increment the counter then.
+        self.incrementCount(elem)
+        # If the queue dropped an element
+        if ret:
+            # calculate the OLD probability of this dropped element
+            pOld = self.getCount(ret)
+            # calculate the NEW probability of this dropped element
             # (may be 0).
-            pOld = self.getCount(elem)
-            # Calculate the NEW probability of the newly added element
-            # (is at least 1/#elements)
-            pNew = pOld+1
-            # If the OLD probability is 0, id est, the element was
-            # not counted before.
-            if pOld == 0:
-                # Just add the entropy of the NEW probability
-                # (== H(1/#elements)).
-                self.entropy -= self.h[pNew]
+            pNew = pOld-1
+            # If the NEW probability is 0
+            if pNew == 0:
+                # Just subtract the respective entropy
+                self.entropy += self.h[pOld]
             # Otherwise
             else:
-                # Subtract the entropy of the OLD probability,
+                # Subtrackt the entropy of the OLD probability
                 # and add the entropy of the NEW one.
                 self.entropy += self.h[pOld] - self.h[pNew]
-            # Increment the counter then.
-            self.incrementCount(elem)
-            # If the queue dropped an element
-            if ret:
-                # calculate the OLD probability of this dropped element
-                pOld = self.getCount(ret)
-                # calculate the NEW probability of this dropped element
-                # (may be 0).
-                pNew = pOld-1
-                # If the NEW probability is 0
-                if pNew == 0:
-                    # Just subtract the respective entropy
-                    self.entropy += self.h[pOld]
-                # Otherwise
-                else:
-                    # Subtrackt the entropy of the OLD probability
-                    # and add the entropy of the NEW one.
-                    self.entropy += self.h[pOld] - self.h[pNew]
-                # Decrement the counter then.
-                self.decrementCount(ret)
+            # Decrement the counter then.
+            self.decrementCount(ret)
 
 
     def getEntropy(self):
         """ If the queue is sufficiently filled, return the entropy,
         otherwise return None.
         """
-
         # Return the entropy only, if the queue is sufficiently filled,
         # for it would not be valid otherwise.
-        if self.queue.isFilled() or self.size == None:
-            if self.size == None and self.entropy == None:
-                self.calculateEntropy()
+        if self.queue.isFilled():
             return self.entropy
         else:
-            return None
+            return self.calculateEntropy()
 
 
     def __len__(self):
