@@ -147,9 +147,9 @@ class ProbSAT:
                 break
             self.initWalk()
             minUnsat = len(self.falseClauses)
-            tracker = Entropytracker(size=self.maxFlips)
+            tracker = Entropytracker(self.maxFlips, self.formula.numVars)
             if self.withLookBack:
-                walkTracker = Entropytracker(size=self.lookBack)
+                walkTracker = Entropytracker(self.lookBack, self.formula.numVars)
             for f in range(1, self.maxFlips+1):
 
                 self.flips = f
@@ -196,5 +196,5 @@ class ProbSAT:
 
         self.averageEntropy = entropySum / self.tries
         end = time.time()
-        self.flipsPerSecond = (t * self.maxFlips + f) / (end - begin)
+        self.flipsPerSecond = ((t-1) * self.maxFlips + f) / (end - begin)
         self.sat = False
