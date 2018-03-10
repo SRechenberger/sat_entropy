@@ -52,7 +52,8 @@ def experiment(
         solver   = solver,
         prob     = prob,
         config   = dict(
-            timeLimit = 10
+            timeLimit = 60,
+            maxTries = 1000
         )
     )
 
@@ -66,14 +67,14 @@ def experiment(
             log('BEGIN', [logfile, logstream])
 
             needLabel = True
-            for (k, vars, ratio), dir in dirs.items():
+            for (k, vars, ratio), dir in input_directories.items():
                 dirBegin = time.time()
                 log('  BEGIN directory {}'.format(dir), [logfile, logstream])
                 for cb in cbs:
                     cbBegin = time.time()
-                    log('    BEGIN cb {:.2f}'.format(cb / 10), [logfile, logstream], end='')
+                    log('    BEGIN cb {:.2f}'.format(cb), [logfile, logstream], end='')
 
-                    config['config']['cb'] = cb / 10
+                    config['config']['cb'] = cb
                     config['config']['maxFlips'] = 50 * vars
 
                     exp = Experiment(dir, **config)
@@ -86,7 +87,7 @@ def experiment(
 
                     cbEnd = time.time()
                     cbTime = (cbEnd - cbBegin)
-                    log(' ...END cb {} ({:10.0f} sec)'.format(cb/10, cbTime), [logfile, logstream])
+                    log(' ...END cb {} ({:10.0f} sec)'.format(cb, cbTime), [logfile, logstream])
 
                 dirEnd = time.time()
                 dirTime = (dirEnd - dirBegin)
@@ -102,23 +103,31 @@ def experiment(
 if __name__ == '__main__':
     root = sys.argv[1]
     dirs = {
-       (3, 10, 4.0): os.path.join(root,'unif-k3-r4.0-v10-c40'),
-    #   (3, 10, 4.1): os.path.join(root,'unif-k3-r4.1-v10-c41'),
-    #   (3, 10, 4.2): os.path.join(root,'unif-k3-r4.2-v10-c42')
-    #   (3, 500, 4.0): os.path.join(root,'unif-k3-r4.0-v500-c2000'),
-    #   (3, 500, 4.1): os.path.join(root,'unif-k3-r4.1-v500-c2050'),
-    #   (3, 500, 4.2): os.path.join(root,'unif-k3-r4.2-v500-c2100')
-    #   (3, 1000, 4.0): os.path.join(root,'unif-k3-r4.0-v1000-c4000'),
-    #   (3, 1000, 4.1): os.path.join(root,'unif-k3-r4.1-v1000-c4100'),
-    #   (3, 1000, 4.2): os.path.join(root,'unif-k3-r4.2-v1000-c4200'),
-    #   (3, 1000, 4.26): os.path.join(root,'unif-k3-r4.26-v1000-c4260')
+        3: {
+    #       (3, 10, 4.0): os.path.join(root,'unif-k3-r4.0-v10-c40'),
+    #       (3, 10, 4.1): os.path.join(root,'unif-k3-r4.1-v10-c41'),
+    #       (3, 10, 4.2): os.path.join(root,'unif-k3-r4.2-v10-c42')
+    #       (3, 500, 4.0): os.path.join(root,'unif-k3-r4.0-v500-c2000'),
+    #       (3, 500, 4.1): os.path.join(root,'unif-k3-r4.1-v500-c2050'),
+    #       (3, 500, 4.2): os.path.join(root,'unif-k3-r4.2-v500-c2100')
+    #       (3, 1000, 4.0): os.path.join(root,'unif-k3-r4.0-v1000-c4000'),
+    #       (3, 1000, 4.1): os.path.join(root,'unif-k3-r4.1-v1000-c4100'),
+            (3, 1000, 4.2): os.path.join(root,'unif-k3-r4.2-v1000-c4200'),
+    #       (3, 1000, 4.26): os.path.join(root,'unif-k3-r4.26-v1000-c4260')
+        },
+        5: {
+            (5, 500, 20): os.path.join(root,'unif-k5-r20.0-v500-c10000')
+        },
+        7: {
+            (7, 500, 85): os.path.join(root,'unif-k7-r85.0-v90-c7650')
+        }
     }
     experiment(
         solver            = ProbSAT,
-        input_directories = dirs,
-        output_directory  = sys.argv[2],
-        output_file_name  = sys.argv[3],
-        poolsize          = int(sys.argv[4]),
+        input_directories = dirs[int(sys.argv[2])],
+        output_directory  = sys.argv[3],
+        output_file_name  = sys.argv[4],
+        poolsize          = int(sys.argv[5]),
         logstream         = sys.stderr,
         prob              = 1,
         verbose           = False
