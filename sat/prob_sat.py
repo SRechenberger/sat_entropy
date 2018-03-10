@@ -81,7 +81,6 @@ class ProbSAT:
         self.func = func
         self.eps = 1
         self.initProbs()
-        self.tracker = Entropytracker()
         self.flips = 0
         self.tries = 0
         self.earlyRestarts = 0
@@ -148,6 +147,7 @@ class ProbSAT:
                 break
             self.initWalk()
             minUnsat = len(self.falseClauses)
+            tracker = Entropytracker(size=self.maxFlips)
             if self.withLookBack:
                 walkTracker = Entropytracker(size=self.lookBack)
             for f in range(1, self.maxFlips+1):
@@ -160,7 +160,7 @@ class ProbSAT:
                 #   reeturn a
                 if unsat == 0:
                     self.sat = True
-                    entropySum += self.tracker.getEntropy()
+                    entropySum += tracker.getEntropy()
                     self.averageEntropy = entropySum / self.tries
                     end = time.time()
                     self.flipsPerSecond = (t * self.maxFlips + f) / (end - begin)
@@ -184,7 +184,7 @@ class ProbSAT:
                                      self.formula,
                                      self.assignment,
                                      self.falseClauses)
-                self.tracker.add(abs(lit))
+                tracker.add(abs(lit))
                 if self.withLookBack:
                     walkTracker.add(abs(lit))
                     h = walkTracker.getEntropy()
@@ -192,7 +192,7 @@ class ProbSAT:
                         self.earlyRestarts += 1
                         break
 
-            entropySum += self.tracker.getEntropy()
+            entropySum += tracker.getEntropy()
 
         self.averageEntropy = entropySum / self.tries
         end = time.time()
