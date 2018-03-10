@@ -3,6 +3,7 @@
 #MSUB -l walltime=24:00:00
 #MSUB -l pmem=2000mb
 #MSUB -N 5sat
+#MSUB -o 5sat.out
 #MSUB -M sascha.rechenberger@uni-ulm.de
 #MSUB -m bea
 #MSUB -q singlenode
