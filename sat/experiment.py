@@ -93,7 +93,6 @@ class Experiment:
             self.formulae,
             int(len(self.formulae)*prob)
         )
-        print("set up {} formulae".format(len(self.formulae)*prob))
 
         # Raise a waring, if the directory is empty,
         # and no output is to be expected.
@@ -119,7 +118,7 @@ class Experiment:
             # assignment    = solver.assignment,
             tries          = solver.tries,
             flips          = solver.flips,
-            totalFlips     = (solver.tries * solver.maxFlips + solver.flips) * (10 if solver.sat == 0 else 1),
+            totalFlips     = ((solver.tries-1) * solver.maxFlips + solver.flips) * (10 if solver.sat == 0 else 1),
             earlyRestarts  = solver.earlyRestarts,
             entropy        = solver.averageEntropy,
             flipsPerSecond = solver.flipsPerSecond
