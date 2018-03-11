@@ -129,7 +129,7 @@ if __name__ == '__main__':
         output_file_name  = sys.argv[4],
         poolsize          = int(sys.argv[5]),
         # logstream         = sys.stderr,
-        prob              = 1,
+        prob              = 0.4,
         verbose           = False,
         timeLimit         = int(sys.argv[6])
     )

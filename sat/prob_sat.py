@@ -21,7 +21,7 @@ class ProbSAT:
         elif self.func == 'exp':
             self.probs = []
             for i in range(0, self.formula.maxOccs+1):
-                if i > 308 and self.cb < 1:
+                if i > 308 and self.cb < 1 and self.cb > 0:
                     self.probs.append(int(1/self.cb)**-(i-1))
                 else:
                     self.probs.append(
