@@ -68,7 +68,11 @@ def load_data(csv_file, default_parser=float, parsers=dict()):
     return to_return
 
 
-def bool_parser(true_value, false_value):
+def bool_parser(false_value=0, true_value=1):
+    """ Returns a function, mapping two values to either true or false.
+    This function raises a ValueException, if the given value matches
+    neither of the given values.
+    """
     def to_return(value):
         if value == true_value:
             return True
