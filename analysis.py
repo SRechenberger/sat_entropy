@@ -4,8 +4,19 @@ import csv
 import os
 import statistics as stat
 import matplotlib.pyplot as plot
+from matplotlib import rc
 from collections import Iterable
 from functools import reduce
+
+rc('font',**{'family':'sans-serif','sans-serif':['Helvetica']})
+rc('text', usetex=True)
+
+
+lbls=dict(
+    h=r'$\frac{H}{H_{max}}$',
+    cb=r'$c_b$',
+    t=r'$t$'
+)
 
 def group_by(data,
              group_key,
@@ -181,8 +192,11 @@ def extract_columns(data, *keys):
     return to_return
 
 
+def sort_data_by_key(data, key, reverse=False):
+    data.sort(key=lambda line: line[key], reverse=reverse)
 
-def plot_cb_to_entropy(data, filename):
+
+def plot_cb_to_entropy(data, ax):
     cb_to_entropy_mean = make_grouped_axes(
         group_by(
             data,
@@ -202,7 +216,6 @@ def plot_cb_to_entropy(data, filename):
     )
 
 
-    fig, ax = plot.subplots()
     ax.grid(linestyle='--')
     ax.scatter(
         cb_to_entropy_scatter['cb'],
@@ -214,12 +227,11 @@ def plot_cb_to_entropy(data, filename):
         cb_to_entropy_mean['cb'],
         cb_to_entropy_mean['entropy']
     )
-    fig.savefig(filename)
+    ax.legend(['runtime', 'mean runtime'])
+    ax.set(xlabel=lbls['cb'], ylabel=lbls['h'])
 
-def sort_data_by_key(data, key, reverse=False):
-    data.sort(key=lambda line: line[key], reverse=reverse)
 
-def plot_cb_to_runtime(data, filename):
+def plot_cb_to_runtime(data, ax):
     cb_to_runtime = make_grouped_axes(
         group_by(
             data,
@@ -232,17 +244,16 @@ def plot_cb_to_runtime(data, filename):
         'totalFlips'
     )
 
-    fig, ax = plot.subplots()
     ax.grid(linestyle='--')
     ax.scatter(
         cb_to_runtime['cb'],
         cb_to_runtime['totalFlips'],
         s=1
     )
+    ax.set(xlabel=lbls['cb'], ylabel=lbls['t'])
 
-    fig.savefig(filename)
 
-def plot_entropy_to_solve_ratio(data, filename):
+def plot_entropy_to_solve_ratio(data, ax):
     sort_data_by_key(data, 'entropy')
     def add_dicts(acc, line):
         for k in acc.keys():
@@ -256,13 +267,12 @@ def plot_entropy_to_solve_ratio(data, filename):
             'sat',
             combine_by = lambda ls: dict(sat=1, total=1) if ls['sat'] else dict(sat=0, total=1),
             reduce_by = lambda ls: (lambda line: line['sat']/line['total'])(reduce(add_dicts, ls)),
-            represented_by = lambda entropy: round(entropy, 2),
+            represented_by = lambda entropy: round(entropy, 3),
         ),
         'entropy',
         'ratio',
     )
 
-    fig, ax = plot.subplots()
 
     ax.grid(linestyle='--')
 
@@ -272,10 +282,10 @@ def plot_entropy_to_solve_ratio(data, filename):
         color='green',
         s=1
     )
+    ax.set(xlabel=lbls['h'], ylabel=r'$\frac{solved}{total}$')
 
-    fig.savefig(filename)
 
-def plot_entropy_to_cases(data, filename):
+def plot_entropy_to_cases(data, ax):
     sort_data_by_key(data, 'entropy')
     def add_dicts(acc, line):
         for k in acc.keys():
@@ -289,14 +299,13 @@ def plot_entropy_to_cases(data, filename):
             'sat',
             combine_by = lambda ls: dict(sat=1, total=1) if ls['sat'] else dict(sat=0, total=1),
             reduce_by = lambda ls: reduce(add_dicts, ls),
-            represented_by = lambda entropy: round(entropy, 2),
+            represented_by = lambda entropy: round(entropy, 3),
         ),
         'entropy',
         'sat',
         'total'
     )
 
-    fig, ax = plot.subplots()
 
     ax.grid(linestyle='--')
 
@@ -314,10 +323,12 @@ def plot_entropy_to_cases(data, filename):
         s=1
     )
 
-    fig.savefig(filename)
+    ax.legend(['total','solved'])
+    ax.set(xlabel=lbls['h'],ylabel=r'$instances$')
 
 
-def plot_entropy_to_runtime(data, filename):
+
+def plot_entropy_to_runtime(data, ax):
     sort_data_by_key(data, 'entropy')
     entropy_to_runtime_stdev = make_grouped_axes(
         group_by(
@@ -326,7 +337,7 @@ def plot_entropy_to_runtime(data, filename):
             'totalFlips',
             combine_by='totalFlips',
             reduce_by=stat.pstdev,
-            represented_by=lambda entropy: round(entropy,2),
+            represented_by=lambda entropy: round(entropy,3),
             #where=lambda line: line['sat']
         ),
         'entropy',
@@ -340,14 +351,13 @@ def plot_entropy_to_runtime(data, filename):
             'totalFlips',
             combine_by='totalFlips',
             reduce_by=stat.mean,
-            represented_by=lambda entropy: round(entropy,2),
-            where=lambda line: line['sat']
+            represented_by=lambda entropy: round(entropy,3),
+            # where=lambda line: line['sat']
         ),
         'entropy',
         'totalFlips'
     )
 
-    fig, ax = plot.subplots()
     ax.grid(linestyle='--')
     ax.scatter(
         entropy_to_runtime_mean['entropy'],
@@ -361,37 +371,46 @@ def plot_entropy_to_runtime(data, filename):
         color='r',
     )
     ax.legend(['mean runtime', 'standard deviation'])
-    ax.set_xlabel('entropy')
-    ax.set_ylabel('runtime')
-
-    fig.savefig(filename)
+    ax.set(xlabel=lbls['h'],ylabel=lbls['t'])
 
 
-def failed_success_entropy(data, filename):
+
+def failed_success_entropy(data, ax):
     parser = dict(sat=int)
-    processed_data = make_grouped_axes(
+    processed_data = make_axes(
+        data,
+        'sat',
+        'lastRunEntropy'
+    )
+    average_data = make_grouped_axes(
         group_by(
             data,
             'sat',
             'lastRunEntropy',
             combine_by='lastRunEntropy',
+            reduce_by=stat.mean,
         ),
         'sat',
-        'lastRunEntropy'
+        'avg_entropy'
     )
 
-    fig, ax = plot.subplots()
+
     ax.grid(linestyle='--')
     ax.scatter(
         processed_data['sat'],
         processed_data['lastRunEntropy'],
         s=1
     )
+    ax.scatter(
+        average_data['sat'],
+        average_data['avg_entropy'],
+        color='red'
+    )
+    ax.set(xlabel=r'$solved?$', ylabel=lbls['h'])
 
-    fig.savefig(filename)
 
 
-def full_analysis(data_folder, experiment_name, analyses=dict()):
+def full_analysis(data_folder, experiment_name, *analyses):
     parsers = dict(sat=bool_parser(false_value='0', true_value='1'))
     data = load_data(
         os.path.join(
@@ -409,45 +428,71 @@ def full_analysis(data_folder, experiment_name, analyses=dict()):
     if not os.path.exists(output_folder):
         os.makedirs(output_folder)
 
-    for name, func in analyses.items():
-        plotted_file = '{}.pdf'.format(name)
+    for analysis in analyses:
+        plotted_file = '{}.pdf'.format(analysis['name'])
         output_file = os.path.join(output_folder, plotted_file)
-        func(data, output_file)
+
+        fig, axarr = plot.subplots(len(analysis['plots']), sharex=True)
+        for i,f in enumerate(analysis['plots']):
+            f(data, axarr[i] if len(analysis['plots']) > 1 else axarr)
+
+        fig.savefig(output_file)
+
 
 
 
 
 if __name__ == '__main__':
-    analyses = dict(
-        cb_to_entropy      = plot_cb_to_entropy,
-        cb_to_runtime      = plot_cb_to_runtime,
-        entropy_to_runtime = plot_entropy_to_runtime,
-        entropy_to_cases   = plot_entropy_to_cases,
-        entropy_to_solve_ratio = plot_entropy_to_solve_ratio
+    analyses_cb = dict(
+        name='cb',
+        plots=[
+            plot_cb_to_entropy,
+            plot_cb_to_runtime
+        ]
     )
 
-    analyses_new = dict(
-        cb_to_entropy      = plot_cb_to_entropy,
-        cb_to_runtime      = plot_cb_to_runtime,
-        entropy_to_runtime = plot_entropy_to_runtime,
-        entropy_to_cases   = plot_entropy_to_cases,
-        entropy_to_solve_ratio = plot_entropy_to_solve_ratio,
-        failed_success_entropy = failed_success_entropy
+    analyses_entropy = dict(
+        name='entropy',
+        plots=[
+            plot_entropy_to_runtime,
+            plot_entropy_to_cases,
+            plot_entropy_to_solve_ratio
+        ]
+    )
+
+    analyses_sat = dict(
+        name='sat',
+        plots=[
+            failed_success_entropy,
+        ]
     )
 
     experiments = [
         'k3-r4.0-v1000',
         'k3-r4.2-v1000',
-        'k3-r4.0-r4.2-v500-cb2-cb3',
     ]
 
-    experiments_new = []
+    experiments_new = [
+        'k3-r4.0-r4.2-v500-cb2-cb3-quick',
+        'k3-r4.0-r4.2-v500-cb2-cb3',
+    ]
 
     data_folder = 'data'
 
     for experiment in experiments:
-        full_analysis(data_folder, experiment, analyses=analyses)
+        full_analysis(
+            data_folder,
+            experiment,
+            analyses_cb,
+            analyses_entropy
+        )
 
     for experiment in experiments_new:
-        fuller_analysis(data_folder, experiment, analyses=analyses_new)
+        full_analysis(
+            data_folder,
+            experiment,
+            analyses_cb,
+            analyses_entropy,
+            analyses_sat
+        )
 
