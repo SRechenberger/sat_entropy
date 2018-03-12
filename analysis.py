@@ -1,4 +1,7 @@
 import csv
+import os
+import statistics as stat
+import matplotlib.pyplot as plot
 from collections import Iterable
 
 def group_by(data,
@@ -6,7 +9,8 @@ def group_by(data,
              *keys,
              represented_by=lambda x:x,
              combine_by=None,
-             reduce_by=None):
+             reduce_by=None,
+             where=None):
     """ Given a dictionary, group the values designated by the keys
     by the group_key, then combine the values designated by the keys
     with combine_by, if given, and reduce the whole list with reduce_by.
@@ -29,7 +33,7 @@ def group_by(data,
     to_return = {}
 
     # for each line in the data
-    for line in data:
+    for line in filter(where,data):
         # get the value to group by
         group_value = line[group_key]
 
@@ -42,7 +46,13 @@ def group_by(data,
             temp[key] = line[key]
 
         if combine_by:
-            temp = combine_by(temp)
+            if callable(combine_by):
+                temp = combine_by(temp)
+            elif combine_by in temp:
+                temp = temp[combine_by]
+            else:
+                raise ValueError('Cannot extract anything from temp={} with combine_by={}.'
+                                 .format(temp, combine_by))
 
         # if the key is already in the dict
         if represented_by(group_value) in to_return:
@@ -58,7 +68,6 @@ def group_by(data,
             to_return[group_value] = reduce_by(values)
 
     return to_return
-
 
 
 def load_data(csv_file,
@@ -108,6 +117,7 @@ def bool_parser(false_value=0, true_value=1):
 
     return to_return
 
+
 def make_grouped_axes(data, key, *keys):
     axes = {key: [], **{k:[] for k in keys}}
 
@@ -134,6 +144,7 @@ def make_grouped_axes(data, key, *keys):
 
     return axes
 
+
 def make_axes(data, *keys):
     axes = {key:[] for key in keys}
     for line in data:
@@ -141,6 +152,7 @@ def make_axes(data, *keys):
             axes[k].append(line[k])
 
     return axes
+
 
 def extract_columns(data, *keys):
     to_return = []
@@ -153,10 +165,151 @@ def extract_columns(data, *keys):
     return to_return
 
 
+def plot_cb_to_entropy(data, filename):
+    cb_to_entropy_mean = make_grouped_axes(
+        group_by(
+            data,
+            'cb',
+            'entropy',
+            combine_by='entropy',
+            reduce_by=stat.mean
+        ),
+        'cb',
+        'entropy'
+    )
+
+    cb_to_entropy_scatter=make_axes(
+        data,
+        'cb',
+        'entropy'
+    )
 
 
+    fig, ax = plot.subplots()
+    ax.grid(linestyle='--')
+    ax.scatter(
+        cb_to_entropy_scatter['cb'],
+        cb_to_entropy_scatter['entropy'],
+        color='red',
+        s=1
+    )
+    ax.plot(
+        cb_to_entropy_mean['cb'],
+        cb_to_entropy_mean['entropy']
+    )
+    fig.savefig(filename)
 
 
-# if __name__ == '__main__':
+def plot_cb_to_runtime(data, filename):
+    cb_to_runtime = make_grouped_axes(
+        group_by(
+            data,
+            'cb',
+            'totalFlips',
+            combine_by='totalFlips',
+            reduce_by=stat.mean
+        ),
+        'cb',
+        'totalFlips'
+    )
 
+    fig, ax = plot.subplots()
+    ax.grid(linestyle='--')
+    ax.scatter(
+        cb_to_runtime['cb'],
+        cb_to_runtime['totalFlips'],
+        s=1
+    )
+
+    fig.savefig(filename)
+
+def plot_entropy_to_runtime(data, filename):
+
+    entropy_to_runtime_stdev = make_grouped_axes(
+        group_by(
+            data,
+            'entropy',
+            'totalFlips',
+            combine_by='totalFlips',
+            reduce_by=stat.pstdev,
+            represented_by=lambda entropy: round(entropy,2),
+            where=lambda line: line['sat']
+        ),
+        'entropy',
+        'totalFlips'
+    )
+
+    entropy_to_runtime_mean = make_grouped_axes(
+        group_by(
+            data,
+            'entropy',
+            'totalFlips',
+            combine_by='totalFlips',
+            reduce_by=stat.mean,
+            represented_by=lambda entropy: round(entropy,2),
+            where=lambda line: line['sat']
+        ),
+        'entropy',
+        'totalFlips'
+    )
+
+    fig, ax = plot.subplots()
+    ax.grid(linestyle='--')
+    ax.scatter(
+        entropy_to_runtime_mean['entropy'],
+        entropy_to_runtime_mean['totalFlips'],
+        s=1,
+    )
+    ax.scatter(
+        entropy_to_runtime_stdev['entropy'],
+        entropy_to_runtime_stdev['totalFlips'],
+        s=1,
+        color='r',
+    )
+    ax.legend(['mean runtime', 'standard deviation'])
+    ax.set_xlabel('entropy')
+    ax.set_ylabel('runtime')
+
+    fig.savefig(filename)
+
+def full_analysis(data_folder, experiment_name, analyses=dict()):
+    parsers = dict(sat=bool_parser(false_value='0', true_value='1'))
+    data = load_data(
+        os.path.join(
+            data_folder,
+            '{}.raw.csv'.format(experiment_name)
+        ),
+        parsers=parsers
+    )
+
+    output_folder = os.path.join(
+        data_folder,
+        '{}_plots'.format(experiment_name)
+    )
+
+    if not os.path.exists(output_folder):
+        os.makedirs(output_folder)
+
+    for name, func in analyses.items():
+        plotted_file = '{}.pdf'.format(name)
+        output_file = os.path.join(output_folder, plotted_file)
+        func(data, output_file)
+
+
+if __name__ == '__main__':
+    analyses = dict(
+        cb_to_entropy      = plot_cb_to_entropy,
+        cb_to_runtime      = plot_cb_to_runtime,
+        entropy_to_runtime = plot_entropy_to_runtime,
+    )
+
+    experiments = [
+        'k3-r4.0-v1000',
+        'k3-r4.2-v1000',
+    ]
+
+    data_folder = 'data'
+
+    for experiment in experiments:
+        full_analysis(data_folder, experiment, analyses=analyses)
 
