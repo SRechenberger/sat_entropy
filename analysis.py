@@ -3,6 +3,7 @@ import os
 import statistics as stat
 import matplotlib.pyplot as plot
 from collections import Iterable
+from functools import reduce
 
 def group_by(data,
              group_key,
@@ -70,6 +71,7 @@ def group_by(data,
     return to_return
 
 
+
 def load_data(csv_file,
               as_axes=False,
               keys=None,
@@ -99,6 +101,7 @@ def load_data(csv_file,
     return to_return
 
 
+
 def bool_parser(false_value=0, true_value=1):
     """ Returns a function, mapping two values to either true or false.
     This function raises a ValueError, if the given value matches
@@ -116,6 +119,7 @@ def bool_parser(false_value=0, true_value=1):
             )
 
     return to_return
+
 
 
 def make_grouped_axes(data, key, *keys):
@@ -145,6 +149,7 @@ def make_grouped_axes(data, key, *keys):
     return axes
 
 
+
 def make_axes(data, *keys):
     axes = {key:[] for key in keys}
     for line in data:
@@ -152,6 +157,7 @@ def make_axes(data, *keys):
             axes[k].append(line[k])
 
     return axes
+
 
 
 def extract_columns(data, *keys):
@@ -163,6 +169,7 @@ def extract_columns(data, *keys):
         to_return.append(tmp)
 
     return to_return
+
 
 
 def plot_cb_to_entropy(data, filename):
@@ -200,6 +207,7 @@ def plot_cb_to_entropy(data, filename):
     fig.savefig(filename)
 
 
+
 def plot_cb_to_runtime(data, filename):
     cb_to_runtime = make_grouped_axes(
         group_by(
@@ -223,8 +231,80 @@ def plot_cb_to_runtime(data, filename):
 
     fig.savefig(filename)
 
-def plot_entropy_to_runtime(data, filename):
+def plot_entropy_to_solve_ratio(data, filename):
+    def add_dicts(acc, line):
+        for k in acc.keys():
+            acc[k] += line[k]
+        return acc
 
+    entropy_to_sat_count = make_grouped_axes(
+        group_by(
+            data,
+            'entropy',
+            'sat',
+            combine_by = lambda ls: dict(sat=1, total=1) if ls['sat'] else dict(sat=0, total=1),
+            reduce_by = lambda ls: (lambda line: line['sat']/line['total'])(reduce(add_dicts, ls)),
+            represented_by = lambda entropy: round(entropy, 2),
+        ),
+        'entropy',
+        'ratio',
+    )
+
+    fig, ax = plot.subplots()
+
+    ax.grid(linestyle='--')
+
+    ax.scatter(
+        entropy_to_sat_count['entropy'],
+        entropy_to_sat_count['ratio'],
+        color='green',
+        s=1
+    )
+
+    fig.savefig(filename)
+
+def plot_entropy_to_cases(data, filename):
+    def add_dicts(acc, line):
+        for k in acc.keys():
+            acc[k] += line[k]
+        return acc
+
+    entropy_to_sat_count = make_grouped_axes(
+        group_by(
+            data,
+            'entropy',
+            'sat',
+            combine_by = lambda ls: dict(sat=1, total=1) if ls['sat'] else dict(sat=0, total=1),
+            reduce_by = lambda ls: reduce(add_dicts, ls),
+            represented_by = lambda entropy: round(entropy, 2),
+        ),
+        'entropy',
+        'sat',
+        'total'
+    )
+
+    fig, ax = plot.subplots()
+
+    ax.grid(linestyle='--')
+
+    ax.scatter(
+        entropy_to_sat_count['entropy'],
+        entropy_to_sat_count['total'],
+        color='red',
+        s=1
+    )
+
+    ax.scatter(
+        entropy_to_sat_count['entropy'],
+        entropy_to_sat_count['sat'],
+        color='green',
+        s=1
+    )
+
+    fig.savefig(filename)
+
+
+def plot_entropy_to_runtime(data, filename):
     entropy_to_runtime_stdev = make_grouped_axes(
         group_by(
             data,
@@ -272,6 +352,7 @@ def plot_entropy_to_runtime(data, filename):
 
     fig.savefig(filename)
 
+
 def full_analysis(data_folder, experiment_name, analyses=dict()):
     parsers = dict(sat=bool_parser(false_value='0', true_value='1'))
     data = load_data(
@@ -301,6 +382,8 @@ if __name__ == '__main__':
         cb_to_entropy      = plot_cb_to_entropy,
         cb_to_runtime      = plot_cb_to_runtime,
         entropy_to_runtime = plot_entropy_to_runtime,
+        entropy_to_cases   = plot_entropy_to_cases,
+        entropy_to_solve_ratio = plot_entropy_to_solve_ratio
     )
 
     experiments = [
