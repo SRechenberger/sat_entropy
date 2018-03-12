@@ -91,7 +91,7 @@ class Experiment:
         )
         self.formulae = random.sample(
             self.formulae,
-            int(len(self.formulae)*prob)
+            int(len(self.formulae)*prob) if prob <= 1 else int(prob)
         )
 
         # Raise a waring, if the directory is empty,
