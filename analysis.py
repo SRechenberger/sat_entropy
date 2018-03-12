@@ -424,6 +424,15 @@ if __name__ == '__main__':
         entropy_to_solve_ratio = plot_entropy_to_solve_ratio
     )
 
+    analyses_new = dict(
+        cb_to_entropy      = plot_cb_to_entropy,
+        cb_to_runtime      = plot_cb_to_runtime,
+        entropy_to_runtime = plot_entropy_to_runtime,
+        entropy_to_cases   = plot_entropy_to_cases,
+        entropy_to_solve_ratio = plot_entropy_to_solve_ratio,
+        failed_success_entropy = failed_success_entropy
+    )
+
     experiments = [
         'k3-r4.0-v1000',
         'k3-r4.2-v1000',
@@ -434,4 +443,7 @@ if __name__ == '__main__':
 
     for experiment in experiments:
         full_analysis(data_folder, experiment, analyses=analyses)
+
+    for experiment in experiments_new:
+        fuller_analysis(data_folder, experiment, analyses=analyses_new)
 

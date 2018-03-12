@@ -173,7 +173,9 @@ class ProbSAT:
                 #   reeturn a
                 if unsat == 0:
                     self.sat = True
-                    self.averageEntropy = entropySum / (self.tries-1)
+                    self.lastRunEntropy = tracker.getEntropy()/self.maxEntropy
+                    entropySum += tracker.getEntropy() / self.maxEntropy
+                    self.averageEntropy = entropySum / self.tries
                     end = time.time()
                     self.flipsPerSecond = (t * self.maxFlips + f) / (end - begin)
                     return
