@@ -10,4 +10,4 @@
 
 module load devel/python/3.5.2
 
-python $WORK/sat_entropy/main.py $WORK/formulae/ 3 $WORK/output/experiment3SAT output 16 60
+python $WORK/sat_entropy/main.py $WORK/formulae/ 3 $WORK/output/experiment3SAT output 16 30
