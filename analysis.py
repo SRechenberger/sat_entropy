@@ -365,6 +365,30 @@ def plot_entropy_to_runtime(data, filename):
     fig.savefig(filename)
 
 
+def failed_success_entropy(data, filename):
+    parser = dict(sat=int)
+    processed_data = make_grouped_axes(
+        group_by(
+            data,
+            'sat',
+            'lastRunEntropy',
+            combine_by='lastRunEntropy',
+        ),
+        'sat',
+        'lastRunEntropy'
+    )
+
+    fig, ax = plot.subplots()
+    ax.grid(linestyle='--')
+    ax.scatter(
+        processed_data['sat'],
+        processed_data['lastRunEntropy'],
+        s=1
+    )
+
+    fig.savefig(filename)
+
+
 def full_analysis(data_folder, experiment_name, analyses=dict()):
     parsers = dict(sat=bool_parser(false_value='0', true_value='1'))
     data = load_data(
@@ -387,6 +411,8 @@ def full_analysis(data_folder, experiment_name, analyses=dict()):
         plotted_file = '{}.pdf'.format(name)
         output_file = os.path.join(output_folder, plotted_file)
         func(data, output_file)
+
+
 
 
 if __name__ == '__main__':

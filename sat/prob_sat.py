@@ -103,8 +103,10 @@ class ProbSAT:
         if self.withLookBack and (minEntropyF < 0 or minEntropyF > 1):
             raise ValueError('minEntropyF={} should be between 0 and 1.'
                              .format(minEntropyF))
+
+        self.maxEntropy=math.log(self.formula.numVars, 2)
         if self.withLookBack:
-            self.minEntropy = math.log(self.formula.numVars,2)*minEntropyF
+            self.minEntropy = self.maxEntropy*minEntropyF
 
         self.lookBack = lookBack
         self.seed = seed
@@ -171,8 +173,7 @@ class ProbSAT:
                 #   reeturn a
                 if unsat == 0:
                     self.sat = True
-                    entropySum += tracker.getEntropy()
-                    self.averageEntropy = entropySum / self.tries
+                    self.averageEntropy = entropySum / (self.tries-1)
                     end = time.time()
                     self.flipsPerSecond = (t * self.maxFlips + f) / (end - begin)
                     return
@@ -203,7 +204,8 @@ class ProbSAT:
                         self.earlyRestarts += 1
                         break
 
-            entropySum += tracker.getEntropy()
+            entropySum += tracker.getEntropy()/self.maxEntropy
+            self.lastRunEntropy = tracker.getEntropy()/self.maxEntropy
 
         self.averageEntropy = entropySum / self.tries
         end = time.time()
