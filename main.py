@@ -26,7 +26,8 @@ def experiment(
     verbose                = False,
     prob                   = 1,
     timeLimit              = None,
-    cb_values              = (0,5)
+    cb_values              = (0,5),
+    h_values               = None
     ):
 
 
@@ -67,28 +68,52 @@ def experiment(
             for (k, vars, ratio), dir in input_directories.items():
                 dirBegin = time.time()
                 log('  BEGIN directory {}'.format(dir), [logfile, logstream])
+
                 cbs = map(
                     lambda x: x/10,
                     range(int(cb_values[0]*10),int(cb_values[1]*10))
                 )
+
                 for cb in cbs:
                     cbBegin = time.time()
-                    log('    BEGIN cb {:.2f}'.format(cb), [logfile, logstream], end='')
+                    log('    BEGIN cb {:.2f}'.format(cb), [logfile, logstream], end='\n' if h_values else '')
 
-                    config['config']['cb'] = cb
-                    config['config']['maxFlips'] = 50 * vars
+                    if h_values:
+                        minEntropies = list(
+                            map(
+                                lambda x: x/100,
+                                range(int(h_values[0]*100),int(h_values[1]*100))
+                            )
+                        )
+                    else:
+                        minEntropies = [0]
 
-                    exp = Experiment(dir, **config)
-                    exp.runExperiment()
-                    exp.printResults(
-                        outfile=outfile,
-                        label=needLabel,
-                    )
-                    needLabel = False
+                    for minEntropy in minEntropies:
+                        if not (len(minEntropies) == 1 and minEntropy == 0):
+                            entropyBegin = time.time()
+                            log('      BEGIN minEntropy {:.2f}'.format(minEntropy), [logfile, logstream], end='')
+
+                        config['config']['cb'] = cb
+                        config['config']['minEntropyF'] = minEntropy
+                        config['config']['maxFlips'] = 50 * vars
+                        config['config']['lookBack'] = 2 * vars
+
+                        exp = Experiment(dir, **config)
+                        exp.runExperiment()
+                        exp.printResults(
+                            outfile=outfile,
+                            label=needLabel,
+                        )
+                        needLabel = False
+
+                        if not (len(minEntropies) == 1 and minEntropy == 0):
+                            entropyEnd = time.time()
+                            entropyTime = (entropyEnd - entropyBegin)
+                            log(' END ({:10.0f} sec)'.format(entropyTime), [logfile, logstream])
 
                     cbEnd = time.time()
                     cbTime = (cbEnd - cbBegin)
-                    log(' ...END cb {} ({:10.0f} sec)'.format(cb, cbTime), [logfile, logstream])
+                    log('    END cb {} ({:10.0f} sec)'.format(cb, cbTime), [logfile, logstream])
 
                 dirEnd = time.time()
                 dirTime = (dirEnd - dirBegin)
@@ -97,8 +122,6 @@ def experiment(
             totalEnd = time.time()
             totalTime = (totalEnd - totalBegin)
             log('END ({:10.0f} sec)'.format(totalTime), [logfile, logstream])
-
-
 
 
 if __name__ == '__main__':
@@ -142,5 +165,6 @@ if __name__ == '__main__':
         prob              = int(sys.argv[9]),
         verbose           = False,
         timeLimit         = int(sys.argv[6]),
-        cb_values         = (float(sys.argv[7]), float(sys.argv[8]))
+        cb_values         = (float(sys.argv[7]), float(sys.argv[8])),
+        h_values          = (float(sys.argv[10]), float(sys.argv[11])) if len(sys.argv) >= 12 else None,
     )
