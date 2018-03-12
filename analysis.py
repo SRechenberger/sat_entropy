@@ -214,7 +214,8 @@ def plot_cb_to_entropy(data, filename):
     )
     fig.savefig(filename)
 
-
+def sort_data_by_key(data, key, reversed=False):
+    data.sort(key=key, reversed=reversed)
 
 def plot_cb_to_runtime(data, filename):
     cb_to_runtime = make_grouped_axes(
@@ -240,6 +241,7 @@ def plot_cb_to_runtime(data, filename):
     fig.savefig(filename)
 
 def plot_entropy_to_solve_ratio(data, filename):
+    sort_data_by_key(data, 'entropy')
     def add_dicts(acc, line):
         for k in acc.keys():
             acc[k] += line[k]
@@ -272,6 +274,7 @@ def plot_entropy_to_solve_ratio(data, filename):
     fig.savefig(filename)
 
 def plot_entropy_to_cases(data, filename):
+    sort_data_by_key(data, 'entropy')
     def add_dicts(acc, line):
         for k in acc.keys():
             acc[k] += line[k]
@@ -313,6 +316,7 @@ def plot_entropy_to_cases(data, filename):
 
 
 def plot_entropy_to_runtime(data, filename):
+    sort_data_by_key(data, 'entropy')
     entropy_to_runtime_stdev = make_grouped_axes(
         group_by(
             data,
