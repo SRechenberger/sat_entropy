@@ -1,3 +1,5 @@
+#!/usr/bin/python
+
 import csv
 import os
 import statistics as stat
@@ -438,6 +440,8 @@ if __name__ == '__main__':
         'k3-r4.2-v1000',
         'k3-r4.0-r4.2-v500-cb2-cb3',
     ]
+
+    experiments_new = []
 
     data_folder = 'data'
 
