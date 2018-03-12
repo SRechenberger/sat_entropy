@@ -76,6 +76,8 @@ def load_data(csv_file,
               as_axes=False,
               keys=None,
               default_parser=float,
+              sort_by=None,
+              reversed=False,
               parsers=dict()):
     def convert(value, key):
         if key in parsers:
@@ -92,6 +94,12 @@ def load_data(csv_file,
             )
         )
 
+    if sort_by:
+        to_return.sort(
+            key=lambda line: line[sort_by],
+            reversed=reversed
+        )
+        
     if keys:
         to_return = extract_columns(to_return, *keys)
 
