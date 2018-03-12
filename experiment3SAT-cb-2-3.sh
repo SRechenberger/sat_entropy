@@ -2,7 +2,7 @@
 #MSUB -l nodes=1:ppn=16
 #MSUB -l walltime=5:00:00
 #MSUB -l pmem=2000mb
-#MSUB -N 3sat
+#MSUB -N 3sat-cb-2-3
 #MSUB -o 3sat-cb-2-3.out
 #MSUB -M sascha.rechenberger@uni-ulm.de
 #MSUB -m bea
