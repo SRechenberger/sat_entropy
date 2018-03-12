@@ -77,7 +77,7 @@ def load_data(csv_file,
               keys=None,
               default_parser=float,
               sort_by=None,
-              reversed=False,
+              reverse=False,
               parsers=dict()):
     def convert(value, key):
         if key in parsers:
@@ -97,9 +97,9 @@ def load_data(csv_file,
     if sort_by:
         to_return.sort(
             key=lambda line: line[sort_by],
-            reversed=reversed
+            reverse=reverse
         )
-        
+
     if keys:
         to_return = extract_columns(to_return, *keys)
 
@@ -214,8 +214,8 @@ def plot_cb_to_entropy(data, filename):
     )
     fig.savefig(filename)
 
-def sort_data_by_key(data, key, reversed=False):
-    data.sort(key=key, reversed=reversed)
+def sort_data_by_key(data, key, reverse=False):
+    data.sort(key=lambda line: line[key], reverse=reverse)
 
 def plot_cb_to_runtime(data, filename):
     cb_to_runtime = make_grouped_axes(
@@ -325,7 +325,7 @@ def plot_entropy_to_runtime(data, filename):
             combine_by='totalFlips',
             reduce_by=stat.pstdev,
             represented_by=lambda entropy: round(entropy,2),
-            where=lambda line: line['sat']
+            #where=lambda line: line['sat']
         ),
         'entropy',
         'totalFlips'
@@ -401,6 +401,7 @@ if __name__ == '__main__':
     experiments = [
         'k3-r4.0-v1000',
         'k3-r4.2-v1000',
+        'k3-r4.0-r4.2-v500-cb2-cb3',
     ]
 
     data_folder = 'data'

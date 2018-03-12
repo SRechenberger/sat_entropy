@@ -130,7 +130,7 @@ if __name__ == '__main__':
         output_file_name  = sys.argv[4],
         poolsize          = int(sys.argv[5]),
         logstream         = sys.stderr,
-        prob              = 200,
+        prob              = int(sys.argv[9]),
         verbose           = False,
         timeLimit         = int(sys.argv[6]),
         cb_values         = (float(sys.argv[7]), float(sys.argv[8]))
