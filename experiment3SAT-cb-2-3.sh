@@ -14,8 +14,8 @@ python \
   $WORK/sat_entropy/main.py \
   $WORK/formulae/ \
   3 \
-  $WORK/output/experiment3SAT \
+  $WORK/output/experiment3SAT-cb-2-3 \
   output \
   16 \
   30 \
-  0 5
+  2 3

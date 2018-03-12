@@ -25,7 +25,8 @@ def experiment(
     poolsize               = 1,
     verbose                = False,
     prob                   = 1,
-    timeLimit              = None
+    timeLimit              = None,
+    cb_values              = (0,5)
     ):
 
 
@@ -57,10 +58,6 @@ def experiment(
         )
     )
 
-    cbs = map(
-        lambda x: x/10,
-        range(0,50)
-    )
     with open(output_file_path, 'w') as outfile:
         with open(log_file_path, 'w') as logfile:
             totalBegin = time.time()
@@ -70,6 +67,10 @@ def experiment(
             for (k, vars, ratio), dir in input_directories.items():
                 dirBegin = time.time()
                 log('  BEGIN directory {}'.format(dir), [logfile, logstream])
+                cbs = map(
+                    lambda x: x/10,
+                    range(int(cb_values[0]*10),int(cb_values[1]*10))
+                )
                 for cb in cbs:
                     cbBegin = time.time()
                     log('    BEGIN cb {:.2f}'.format(cb), [logfile, logstream], end='')
@@ -128,8 +129,9 @@ if __name__ == '__main__':
         output_directory  = sys.argv[3],
         output_file_name  = sys.argv[4],
         poolsize          = int(sys.argv[5]),
-        # logstream         = sys.stderr,
+        logstream         = sys.stderr,
         prob              = 200,
         verbose           = False,
-        timeLimit         = int(sys.argv[6])
+        timeLimit         = int(sys.argv[6]),
+        cb_values         = (float(sys.argv[7]), float(sys.argv[8]))
     )
