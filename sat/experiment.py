@@ -23,9 +23,14 @@ class Experiment:
                  seed     = None,
                  prob     = 1,
                  log      = sys.stdout):
-        if prob > 1 or prob <= 0:
+        if type(prob) is float and prob > 1 or prob <= 0:
             raise ValueError(
                 'prob={} must be in (0,1].'
+                .format(prob)
+            )
+        elif type(prob) is int and prob < 1:
+            raise ValueError(
+                'prob={} must be greater than 1.'
                 .format(prob)
             )
 
@@ -89,9 +94,10 @@ class Experiment:
                 )
             )
         )
+
         self.formulae = random.sample(
             self.formulae,
-            int(len(self.formulae)*prob) if prob <= 1 else int(prob)
+            int(len(self.formulae)*prob) if type(prob) is float else prob
         )
 
         # Raise a waring, if the directory is empty,

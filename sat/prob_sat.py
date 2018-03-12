@@ -85,7 +85,7 @@ class ProbSAT:
 
         if func:
             self.func = func
-        elif self.formula.maxOccs <= 3:
+        elif self.formula.maxClauseLength <= 3:
             self.func = 'poly'
         else:
             self.func = 'exp'

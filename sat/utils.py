@@ -192,6 +192,7 @@ class CNF:
         if not filepath.endswith('.cnf'):
             raise ValueError(filepath + " is no .cnf file.")
 
+        self.maxClauseLength = 0
         # Parse the file.
         with open(filepath) as f:
             r = re.compile(r'-?\d+')  # find numbers
@@ -205,6 +206,8 @@ class CNF:
                     self.numClauses = int(m)
                 else:
                     self.clauses.append(list(map(int, r.findall(line)))[:-1])
+                    if len(self.clauses[-1]) > self.maxClauseLength:
+                        self.maxClauseLength = len(self.clauses[-1])
 
         for i in range(0, self.numVars*2+1):
             self.occurrences.append([])
