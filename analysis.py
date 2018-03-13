@@ -406,7 +406,9 @@ def failed_success_entropy(data, ax):
         average_data['avg_entropy'],
         color='red'
     )
-    ax.set(xlabel=r'$solved?$', ylabel=lbls['h'])
+    ax.set(xlabel=r'$solved?$',
+           ylabel=lbls['h'],
+           ylim=[0.4,1])
 
 
 
