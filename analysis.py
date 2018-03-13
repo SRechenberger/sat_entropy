@@ -406,7 +406,9 @@ def failed_success_entropy(data, ax):
         average_data['avg_entropy'],
         color='red'
     )
-    ax.set(xlabel=r'$solved?$', ylabel=lbls['h'])
+    ax.set(xlabel=r'$solved?$',
+           ylabel=lbls['h'],
+           ylim=[0.4,1])
 
 
 
@@ -475,6 +477,7 @@ if __name__ == '__main__':
     experiments_new = [
         'k3-r4.0-r4.2-v500-cb2-cb3-quick',
         'k3-r4.0-r4.2-v500-cb2-cb3',
+        'k3-v500'
     ]
 
     data_folder = 'data'

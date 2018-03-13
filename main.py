@@ -141,6 +141,18 @@ if __name__ == '__main__':
             (3, 500, 4.0): os.path.join(root,'unif-k3-r4.0-v500-c2000'),
             (3, 500, 4.1): os.path.join(root,'unif-k3-r4.1-v500-c2050'),
             (3, 500, 4.2): os.path.join(root,'unif-k3-r4.2-v500-c2100')
+        }
+        310041:{
+            (3, 100, 4.1): os.path.join(root,'unif-k3-r4.1-v100-c420'),
+        },
+        350040:{
+            (3, 500, 4.0): os.path.join(root,'unif-k3-r4.0-v500-c2000'),
+        },
+        350041:{
+            (3, 500, 4.1): os.path.join(root,'unif-k3-r4.1-v500-c2050'),
+        },
+        350042:{
+            (3, 500, 4.2): os.path.join(root,'unif-k3-r4.2-v500-c2100')
         },
         31000:{
             (3, 1000, 4.0): os.path.join(root,'unif-k3-r4.0-v1000-c4000'),
