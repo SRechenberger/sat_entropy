@@ -39,7 +39,7 @@ class ProbSAT:
                  maxTries=None,
                  timeLimit=None,
                  func=None,
-                 minEntropyF=None,
+                 minEntropyF=0,
                  lookBack=None,
                  seed=None):
         if isinstance(formula, CNF):
@@ -74,21 +74,21 @@ class ProbSAT:
             raise TypeError("timeLimit={} is not of type int."
                             .format(timeLimit))
 
-
-        if cb == None:
-            self.cb = ProbSAT.defaultCB[max(map(len, self.formula.clauses))][func]
-        elif type(cb) == float:
-            self.cb = cb
-        else:
-            raise TypeError("cb={} is not of type float."
-                            .format(cb))
-
         if func:
             self.func = func
         elif self.formula.maxClauseLength <= 3:
             self.func = 'poly'
         else:
             self.func = 'exp'
+
+
+        if cb == None:
+            self.cb = ProbSAT.defaultCB[max(map(len, self.formula.clauses))][self.func]
+        elif type(cb) == float:
+            self.cb = cb
+        else:
+            raise TypeError("cb={} is not of type float."
+                            .format(cb))
 
         self.eps = 0.9
         self.initProbs()
@@ -156,7 +156,7 @@ class ProbSAT:
         for t in range(1, self.maxTries+1):
             # print('c Try #{}'.format(t))
             self.tries = t
-            if time.time() - begin > self.timeLimit:
+            if self.timeLimit and time.time() - begin > self.timeLimit:
                 break
             self.initWalk()
             minUnsat = len(self.falseClauses)

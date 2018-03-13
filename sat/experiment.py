@@ -11,28 +11,23 @@ class Experiment:
     # TODO needs overhaul!!!
 
     def __init__(self,
-                 directory,
+                 directories = [],
                  poolsize = 1,
                  solver   = None,
                  config   = dict(),
                  verbose  = False,
                  seed     = None,
-                 prob     = 1,
+                 prob     = None,
                  log      = sys.stdout):
-        if type(prob) is float and prob > 1 or prob <= 0:
+
+        if type(prob) is not int:
             raise ValueError(
-                'prob={} must be in (0,1].'
-                .format(prob)
-            )
-        elif type(prob) is int and prob < 1:
-            raise ValueError(
-                'prob={} must be greater than 1.'
-                .format(prob)
-            )
+                'prob :: {} should be an int.'
+                .format(type(prob)))
 
         self.verbose=verbose
         self.log=log
-        self.setupFormulae(directory, prob)
+        self.setupFormulae(prob, directories)
         self.poolsize = poolsize
         self.config = config
         self.seed = None
@@ -66,35 +61,38 @@ class Experiment:
                   file=self.log)
 
 
-    def setupFormulae(self, directory, prob):
+    def setupFormulae(self, prob, directories):
         if self.verbose:
             print('Setting up formulae... ',
                   flush=True,
                   file=self.log)
 
         # Check the argument type.
-        if type(directory) is not str:
-            raise TypeError('directory=({}::{}) should be a str.'
-                            .format(directory, type(directory)))
+        if type(directories) is not list:
+            raise TypeError('directory=({}::{}) should be a list.'
+                            .format(directories, type(directories)))
 
         # Load the formulae
         #   os.listdir directory
         #   >>> filter (\f -> f.endswith('.cnf'))
         #   >>> map CNF
-        self.formulae = list(
-            map(
-                lambda f: os.path.join(directory, f),
-                filter(
-                    lambda f: f.endswith('.cnf'),
-                    os.listdir(directory)
+        self.formulae = []
+        for directory in directories:
+            self.formulae += list(
+                map(
+                    lambda f: os.path.join(directory, f),
+                    filter(
+                        lambda f: f.endswith('.cnf'),
+                        os.listdir(directory)
+                    )
                 )
             )
-        )
 
         self.formulae = random.sample(
             self.formulae,
-            int(len(self.formulae)*prob) if type(prob) is float else prob
+            prob
         )
+
 
         # Raise a waring, if the directory is empty,
         # and no output is to be expected.
@@ -109,7 +107,16 @@ class Experiment:
 
 
     def _runSolver(self, filepath):
-        solver = self.solver(filepath,**self.config)
+        def prepare_config():
+            empty_config = {}
+            for k,v in self.config.items():
+                if type(v) is list:
+                    empty_config[k] = v[random.randrange(0,len(v))]
+                else:
+                    empty_config[k] = v
+            return empty_config
+
+        solver = self.solver(filepath,**prepare_config())
         solver.solve(self.seed)
         return dict(
             variables      = solver.formula.numVars,
