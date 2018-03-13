@@ -202,8 +202,8 @@ class ProbSAT:
                 if self.withLookBack:
                     walkTracker.add(abs(lit))
                     h = walkTracker.getEntropy()
-                    if not (h == None) and h < self.minEntropy:
-                        if random.random() >= (h/self.minEntropy)**2:
+                    if h and h < self.minEntropy:
+                        if random.random() >= (h/self.minEntropy):
                             self.earlyRestarts += 1
                             break
 
