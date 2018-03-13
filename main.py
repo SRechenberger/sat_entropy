@@ -69,8 +69,8 @@ def experiment(
                 dirBegin = time.time()
                 log('  BEGIN directory {}'.format(dir), [logfile, logstream])
 
-		if cb_values[0] == cb_values[1]:
-		   cbs = [cb_values[0]]
+                if cb_values[0] == cb_values[1]:
+                    cbs = [cb_values[0]]
                 else:
                   cbs = map(
                       lambda x: x/10,
