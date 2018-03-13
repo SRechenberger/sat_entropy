@@ -80,6 +80,7 @@ if __name__ == '__main__':
         i += 1
 
 
+    outfile_path = os.path.join(output_root, outfile_path)
     with open(outfile_path, 'w') as outfile:
         # Running the experiment.
         i = 0
