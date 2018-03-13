@@ -1,9 +1,9 @@
 #!/bin/bash
 #MSUB -l nodes=1:ppn=16
-#MSUB -l walltime=24:00:00
+#MSUB -l walltime=8:00:00
 #MSUB -l pmem=2000mb
-#MSUB -N 3sat-early-restart
-#MSUB -o 3sat-early-restart.out
+#MSUB -N 3sat-cb-2-3-early-restart
+#MSUB -o 3sat-cb-2-3-early-restart.out
 #MSUB -M sascha.rechenberger@uni-ulm.de
 #MSUB -m bea
 #MSUB -q singlenode
@@ -14,10 +14,10 @@ python \
   $WORK/sat_entropy/main.py \
   $WORK/formulae/ \
   3500 \
-  $WORK/output/experiment3SAT-early-restart \
+  $WORK/output/experiment3SAT-cb-2-3-early-restart \
   output \
   16 \
   30 \
-  0 5 \
-  30 \
-  0.6 0.8
+  2 3 \
+  100 \
+  0.6 0.7
