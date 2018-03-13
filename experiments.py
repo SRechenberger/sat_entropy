@@ -32,7 +32,7 @@ experiments = {
             timeLimit = 10
         )
     ),
-    'k3-v500-r4.1-default-cb': dict(
+    'k3-v500-r4.1': dict(
         dirs   = ['unif-k3-r4.1-v500-c2050'],
         solver = ProbSAT,
         prob   = 500,
@@ -41,13 +41,13 @@ experiments = {
             timeLimit = 20
         )
     ),
-    'k3-v500-r4.1-default-cb-early-restart': dict(
+    'k3-v500-r4.1-er': dict(
         dirs   = ['unif-k3-r4.1-v500-c2050'],
         solver = ProbSAT,
         prob   = 500,
         config = dict(
             maxFlips = 50 * 500,
-            lookBack = 2 * 500,
+            lookBack = list(map(lambda f: f*500, range(1,3))),
             minEntropyF = float_range_list(0.5,0.9,0.1),
             timeLimit = 20,
         )
