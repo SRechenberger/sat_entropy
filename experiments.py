@@ -48,7 +48,7 @@ experiments = {
         config = dict(
             maxFlips = 50 * 500,
             lookBack = list(map(lambda f: f*500, range(1,3))),
-            minEntropyF = float_range_list(0.5,0.9,0.1),
+            minEntropyF = float_range_list(0.4,0.8,0.1),
             timeLimit = 20,
         )
     )
