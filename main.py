@@ -69,10 +69,13 @@ def experiment(
                 dirBegin = time.time()
                 log('  BEGIN directory {}'.format(dir), [logfile, logstream])
 
-                cbs = map(
-                    lambda x: x/10,
-                    range(int(cb_values[0]*10),int(cb_values[1]*10))
-                )
+		if cb_values[0] == cb_values[1]:
+		   cbs = [cb_values[0]]
+                else:
+                  cbs = map(
+                      lambda x: x/10,
+                      range(int(cb_values[0]*10),int(cb_values[1]*10))
+                  )
 
                 for cb in cbs:
                     cbBegin = time.time()
@@ -141,7 +144,7 @@ if __name__ == '__main__':
             (3, 500, 4.0): os.path.join(root,'unif-k3-r4.0-v500-c2000'),
             (3, 500, 4.1): os.path.join(root,'unif-k3-r4.1-v500-c2050'),
             (3, 500, 4.2): os.path.join(root,'unif-k3-r4.2-v500-c2100')
-        }
+        },
         310041:{
             (3, 100, 4.1): os.path.join(root,'unif-k3-r4.1-v100-c420'),
         },

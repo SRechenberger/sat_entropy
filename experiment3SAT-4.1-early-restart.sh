@@ -1,6 +1,6 @@
 #!/bin/bash
 #MSUB -l nodes=1:ppn=16
-#MSUB -l walltime=12:00:00
+#MSUB -l walltime=2:00:00
 #MSUB -l pmem=2000mb
 #MSUB -N 3sat-v100-r4.1-early-restart
 #MSUB -o 3sat-v100-r4.1-early-restart.out
@@ -18,6 +18,6 @@ python \
   output \
   16 \
   10 \
-  0 5 \
-  20 \
+  2.3 2.3 \
+  500 \
   0.6 0.8
