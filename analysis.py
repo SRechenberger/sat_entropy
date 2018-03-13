@@ -18,6 +18,13 @@ lbls=dict(
     t=r'$t$'
 )
 
+def count_different_values(*seqs):
+    s = set()
+    for seq in seqs:
+        for x in seq:
+            s.add(x)
+    return len(s)
+
 def group_by(data,
              group_key,
              *keys,
@@ -171,23 +178,25 @@ def make_grouped_axes(data, key, *keys):
 
 
 
-def make_axes(data, *keys):
+def make_axes(data, *keys, where=None, represented_by=lambda x:x):
     axes = {key:[] for key in keys}
     for line in data:
-        for k in keys:
-            axes[k].append(line[k])
+        if not where or where(line):
+            for k in keys:
+                axes[k].append(represented_by(line[k]))
 
     return axes
 
 
 
-def extract_columns(data, *keys):
+def extract_columns(data, *keys, where=None):
     to_return = []
     for line in data:
-        tmp = {}
-        for key in keys:
-            tmp[key] = line[key]
-        to_return.append(tmp)
+        if not where or where(line):
+            tmp = {}
+            for key in keys:
+                tmp[key] = line[key]
+            to_return.append(tmp)
 
     return to_return
 
@@ -394,22 +403,105 @@ def failed_success_entropy(data, ax):
         'avg_entropy'
     )
 
+    sat = make_axes(
+        extract_columns(
+            data,
+            'lastRunEntropy',
+            where=lambda line: line['sat'],
+        ),
+        'lastRunEntropy'
+    )
+
+    unsat = make_axes(
+        extract_columns(
+            data,
+            'lastRunEntropy',
+            where=lambda line: not line['sat'],
+        ),
+        'lastRunEntropy'
+    )
+
+
+    ax.grid(linestyle='--')
+
+    ax.hist(
+        [sat['lastRunEntropy'],unsat['lastRunEntropy']],
+        count_different_values(
+            sat['lastRunEntropy'],
+            unsat['lastRunEntropy']
+        )//20
+    )
+
+    ax.set(xlabel=lbls['h'],
+           xlim=[0.4,1])
+
+
+def successful_run_entropy(data, ax):
+    sort_data_by_key(data, 'lastRunEntropy')
+    data_scatter = make_axes(
+        data,
+        'lastRunEntropy',
+        'flips',
+        where=lambda line: line['sat'],
+        # where=lambda line: line['sat'] and 2.3 <= line['cb'] < 2.5,
+    )
+
+    data_mean = make_grouped_axes(
+        group_by(
+            data,
+            'lastRunEntropy',
+            'flips',
+            # where=lambda line: line['sat'] and 2.3 <= line['cb'] < 2.5,
+            where=lambda line: line['sat'],
+            combine_by='flips',
+            reduce_by=stat.mean,
+            represented_by=lambda h: round(h,2)
+        ),
+        'lastRunEntropy',
+        'avg_flips'
+    )
+
 
     ax.grid(linestyle='--')
     ax.scatter(
-        processed_data['sat'],
-        processed_data['lastRunEntropy'],
+        data_scatter['lastRunEntropy'],
+        data_scatter['flips'],
         s=1
     )
-    ax.scatter(
-        average_data['sat'],
-        average_data['avg_entropy'],
+    ax.plot(
+        data_mean['lastRunEntropy'],
+        data_mean['avg_flips'],
         color='red'
     )
-    ax.set(xlabel=r'$solved?$',
-           ylabel=lbls['h'],
-           ylim=[0.4,1])
+    ax.set(
+        xlabel=lbls['h'],
+        ylabel=lbls['t'],
+        xlim=[0.4,1]
+    )
 
+
+def successful_run_entropy_count(data, ax):
+
+    data_hist=make_axes(
+        extract_columns(
+            data,
+            'lastRunEntropy',
+            # where=lambda line: line['sat'] and 2.3 <= line['cb'] < 2.5,
+            where=lambda line: line['sat'],
+        ),
+        'lastRunEntropy',
+        represented_by=lambda h:round(h,3),
+    )
+
+    ax.grid(linestyle='--')
+    ax.hist(
+        data_hist['lastRunEntropy'],
+        count_different_values(data_hist['lastRunEntropy'])//2,
+    )
+    ax.set(
+        xlabel=lbls['h'],
+        xlim=[0.5,1]
+    )
 
 
 def full_analysis(data_folder, experiment_name, *analyses):
@@ -435,9 +527,14 @@ def full_analysis(data_folder, experiment_name, *analyses):
         output_file = os.path.join(output_folder, plotted_file)
 
         fig, axarr = plot.subplots(len(analysis['plots']), sharex=True)
+        lbl=''
         for i,f in enumerate(analysis['plots']):
-            f(data, axarr[i] if len(analysis['plots']) > 1 else axarr)
+            ax = axarr[i] if len(analysis['plots']) > 1 else axarr
+            f(data, ax)
+            lbl = ax.get_xlabel()
+            ax.set_xlabel('')
 
+        ax.set_xlabel(lbl)
         fig.savefig(output_file)
 
 
@@ -459,6 +556,15 @@ if __name__ == '__main__':
             plot_entropy_to_runtime,
             plot_entropy_to_cases,
             plot_entropy_to_solve_ratio
+        ]
+    )
+
+    analyses_last_run = dict(
+        name='last_run',
+        plots=[
+            successful_run_entropy,
+            successful_run_entropy_count
+
         ]
     )
 
@@ -496,6 +602,7 @@ if __name__ == '__main__':
             experiment,
             analyses_cb,
             analyses_entropy,
-            analyses_sat
+            analyses_sat,
+            analyses_last_run
         )
 
