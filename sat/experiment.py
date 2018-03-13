@@ -7,10 +7,6 @@ from sat.utils import CNF
 from multiprocessing import Pool
 
 
-# def run(f):
-#    f()
-#    return f
-
 class Experiment:
     # TODO needs overhaul!!!
 
