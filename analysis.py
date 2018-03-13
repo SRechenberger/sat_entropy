@@ -429,7 +429,7 @@ def failed_success_entropy(data, ax):
         count_different_values(
             sat['lastRunEntropy'],
             unsat['lastRunEntropy']
-        )//20
+        )
     )
 
     ax.set(xlabel=lbls['h'],
@@ -496,7 +496,7 @@ def successful_run_entropy_count(data, ax):
     ax.grid(linestyle='--')
     ax.hist(
         data_hist['lastRunEntropy'],
-        count_different_values(data_hist['lastRunEntropy'])//2,
+        count_different_values(data_hist['lastRunEntropy']),
     )
     ax.set(
         xlabel=lbls['h'],
@@ -583,7 +583,10 @@ if __name__ == '__main__':
     experiments_new = [
         'k3-r4.0-r4.2-v500-cb2-cb3-quick',
         'k3-r4.0-r4.2-v500-cb2-cb3',
-        'k3-v500'
+        'k3-v500',
+        'k3-v100-er',
+        'k3-v100',
+
     ]
 
     data_folder = 'data'
