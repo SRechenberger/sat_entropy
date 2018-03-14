@@ -620,7 +620,7 @@ def full_analysis(data_folder, experiment_name, *analyses):
     sections = ""
     for analysis in analyses:
         plotted_file = '{}.pdf'.format(analysis['name'])
-        sections += section_template.format(analysis['name'], plotted_file)
+        sections += section_template.format(analysis['tex_name'], plotted_file)
         output_file = os.path.join(output_folder, plotted_file)
 
         fig, axarr = plot.subplots(len(analysis['plots']), sharex=True)
@@ -635,20 +635,23 @@ def full_analysis(data_folder, experiment_name, *analyses):
         fig.savefig(output_file)
 
     document = document_template.format(experiment_name, sections)
-    tex_file = os.path.join(
+    tex_file = '{}.gen.tex'.format(experiment_name)
+    tex_file_path = os.path.join(
         output_folder,
-        '{}.gen.tex'.format(experiment_name)
+        tex_file
     )
-    with open(tex_file, 'w') as f:
+    with open(tex_file_path, 'w') as f:
         print(
             document,
             file=f
         )
+    os.system('cd {} && pdflatex {}'.format(output_folder, tex_file))
 
 
 if __name__ == '__main__':
     analyses_cb = dict(
         name='cb',
+        tex_name=r'Concerning $c_b$',
         plots=[
             plot_cb_to_entropy,
             plot_cb_to_runtime,
@@ -657,6 +660,7 @@ if __name__ == '__main__':
 
     analyses_entropy = dict(
         name='entropy',
+        tex_name=r'Concerning {}'.format(lbls['h']),
         plots=[
             plot_entropy_to_runtime,
             plot_entropy_to_cases,
@@ -666,6 +670,7 @@ if __name__ == '__main__':
 
     analyses_last_run = dict(
         name='last-run',
+        tex_name=r'Concerning the last random walk',
         plots=[
             successful_run_entropy,
             successful_run_entropy_count,
@@ -676,6 +681,7 @@ if __name__ == '__main__':
 
     analyses_sat = dict(
         name='sat',
+        tex_name=r'Concerning satisfied and unsatisfied formulas',
         plots=[
             failed_success_entropy,
         ]
@@ -683,6 +689,7 @@ if __name__ == '__main__':
 
     analyses_early_restart = dict(
         name='er-to-avg-t',
+        tex_name=r'Concerning early restarts',
         plots=[
             plot_early_restarts_to_entropy,
             plot_early_restarts_to_runtime
