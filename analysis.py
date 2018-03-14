@@ -15,7 +15,8 @@ rc('text', usetex=True)
 lbls=dict(
     h=r'$\frac{H}{H_{max}}$',
     cb=r'$c_b$',
-    t=r'$t$'
+    t=r'$t$',
+    er=r'$early restarts$'
 )
 
 def count_different_values(*seqs):
@@ -500,9 +501,83 @@ def successful_run_entropy_count(data, ax):
     )
     ax.set(
         xlabel=lbls['h'],
+        ylabel='successful runs',
         xlim=[0.5,1]
     )
 
+def failed_run_entropy_count(data, ax):
+
+    data_hist=make_axes(
+        extract_columns(
+            data,
+            'lastRunEntropy',
+            # where=lambda line: line['sat'] and 2.3 <= line['cb'] < 2.5,
+            where=lambda line: not line['sat'],
+        ),
+        'lastRunEntropy',
+        represented_by=lambda h:round(h,3),
+    )
+
+    ax.grid(linestyle='--')
+    ax.hist(
+        data_hist['lastRunEntropy'],
+        count_different_values(data_hist['lastRunEntropy'])//2,
+    )
+    ax.set(
+        xlabel=lbls['h'],
+        ylabel='failed runs',
+        xlim=[0.5,1]
+    )
+
+
+def plot_early_restarts_to_runtime(data, ax):
+    processed_data = make_grouped_axes(
+        group_by(
+            data,
+            'earlyRestarts',
+            'totalFlips',
+            combine_by='totalFlips',
+            reduce_by = stat.mean,
+        ),
+        'earlyRestarts',
+        'totalFlips',
+    )
+
+    ax.grid(linestyle='--')
+    ax.scatter(
+        processed_data['earlyRestarts'],
+        processed_data['totalFlips'],
+        s=1
+    )
+    ax.set(
+        xlabel=lbls['er'],
+        ylabel=lbls['t']
+    )
+
+
+def plot_early_restarts_to_entropy(data, ax):
+    processed_data = make_grouped_axes(
+        group_by(
+            data,
+            'earlyRestarts',
+            'entropy',
+            combine_by='entropy',
+            reduce_by = stat.mean,
+        ),
+        'earlyRestarts',
+        'entropy',
+    )
+
+    ax.grid(linestyle='--')
+    ax.scatter(
+        processed_data['earlyRestarts'],
+        processed_data['entropy'],
+        s=1
+    )
+    ax.set(
+        xlabel=lbls['er'],
+        ylabel=lbls['h']
+    )
 
 def full_analysis(data_folder, experiment_name, *analyses):
     parsers = dict(sat=bool_parser(false_value='0', true_value='1'))
@@ -546,7 +621,7 @@ if __name__ == '__main__':
         name='cb',
         plots=[
             plot_cb_to_entropy,
-            plot_cb_to_runtime
+            plot_cb_to_runtime,
         ]
     )
 
@@ -563,7 +638,8 @@ if __name__ == '__main__':
         name='last_run',
         plots=[
             successful_run_entropy,
-            successful_run_entropy_count
+            successful_run_entropy_count,
+            failed_run_entropy_count
 
         ]
     )
@@ -575,16 +651,22 @@ if __name__ == '__main__':
         ]
     )
 
-    experiments = [
-        'k3-r4.0-v1000',
-        'k3-r4.2-v1000',
-    ]
+    analyses_early_restart = dict(
+        name='er_to_avg_t',
+        plots=[
+            plot_early_restarts_to_entropy,
+            plot_early_restarts_to_runtime
+        ]
+    )
 
-    experiments_new = [
+    experiments = [
         'k3-r4.0-r4.2-v500-cb2-cb3-quick',
         'k3-r4.0-r4.2-v500-cb2-cb3',
         'k3-v500-r4.1',
-        'k3-v500-r4.1-er'
+    ]
+
+    experiments_er = [
+        'k3-v500-r4.1-er',
     ]
 
     data_folder = 'data'
@@ -593,17 +675,17 @@ if __name__ == '__main__':
         full_analysis(
             data_folder,
             experiment,
-            analyses_cb,
-            analyses_entropy
-        )
-
-    for experiment in experiments_new:
-        full_analysis(
-            data_folder,
-            experiment,
-            analyses_cb,
             analyses_entropy,
             analyses_sat,
             analyses_last_run
+        )
+    for experiment in experiments_er:
+        full_analysis(
+            data_folder,
+            experiment,
+            analyses_entropy,
+            analyses_sat,
+            analyses_last_run,
+            analyses_early_restart
         )
 
