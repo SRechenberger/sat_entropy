@@ -677,10 +677,12 @@ if __name__ == '__main__':
         'k3-r4.0-r4.2-v500-cb2-cb3-quick',
         'k3-r4.0-r4.2-v500-cb2-cb3',
         'k3-v500-r4.1',
+        'k3-v500-r4.2',
     ]
 
     experiments_er = [
         'k3-v500-r4.1-er',
+        'k3-v500-r4.2-er',
     ]
 
     data_folder = 'data'
