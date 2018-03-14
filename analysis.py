@@ -17,6 +17,7 @@ document_template = r"""
 \usepackage{{graphicx}}
 \title{{{}}}
 \begin{{document}}
+\maketitle
 {}
 \end{{document}}
 """
@@ -664,7 +665,7 @@ if __name__ == '__main__':
     )
 
     analyses_last_run = dict(
-        name='last_run',
+        name='last-run',
         plots=[
             successful_run_entropy,
             successful_run_entropy_count,
@@ -681,7 +682,7 @@ if __name__ == '__main__':
     )
 
     analyses_early_restart = dict(
-        name='er_to_avg_t',
+        name='er-to-avg-t',
         plots=[
             plot_early_restarts_to_entropy,
             plot_early_restarts_to_runtime
