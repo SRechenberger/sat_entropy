@@ -517,7 +517,7 @@ def failed_run_entropy_count(data, ax):
     ax.grid(linestyle='--')
     ax.hist(
         data_hist['lastRunEntropy'],
-        count_different_values(data_hist['lastRunEntropy'])//2,
+        count_different_values(data_hist['lastRunEntropy']),
     )
     ax.set(
         xlabel=lbls['h'],
@@ -574,6 +574,7 @@ def plot_early_restarts_to_entropy(data, ax):
         xlabel=lbls['er'],
         ylabel=lbls['h']
     )
+
 
 def full_analysis(data_folder, experiment_name, *analyses):
     parsers = dict(sat=bool_parser(false_value='0', true_value='1'))
