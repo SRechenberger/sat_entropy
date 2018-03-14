@@ -11,6 +11,25 @@ from functools import reduce
 rc('font',**{'family':'sans-serif','sans-serif':['Helvetica']})
 rc('text', usetex=True)
 
+document_template = r"""
+\documentclass[a4paper]{{scrartcl}}
+\usepackage[a4paper, left=2cm, right=1.5cm, top=0.5cm, bottom=0.5cm]{{geometry}}
+\usepackage{{graphicx}}
+\title{{{}}}
+\begin{{document}}
+{}
+\end{{document}}
+"""
+
+section_template = r"""
+\section{{{}}}
+\includegraphics[width=1\textwidth]{{{}}}
+"""
+
+plot_template = r"""
+\includegraphics[width=1\textwidth]{{{}}}
+"""
+
 
 lbls=dict(
     h=r'$\frac{H}{H_{max}}$',
@@ -597,8 +616,10 @@ def full_analysis(data_folder, experiment_name, *analyses):
     if not os.path.exists(output_folder):
         os.makedirs(output_folder)
 
+    sections = ""
     for analysis in analyses:
         plotted_file = '{}.pdf'.format(analysis['name'])
+        sections += section_template.format(analysis['name'], plotted_file)
         output_file = os.path.join(output_folder, plotted_file)
 
         fig, axarr = plot.subplots(len(analysis['plots']), sharex=True)
@@ -612,8 +633,16 @@ def full_analysis(data_folder, experiment_name, *analyses):
         ax.set_xlabel(lbl)
         fig.savefig(output_file)
 
-
-
+    document = document_template(experiment_name, sections)
+    tex_file = os.path.join(
+        output_folder,
+        '{}.tex'.format(experiment_name)
+    )
+    with open(tex_file, 'w') as f:
+        print(
+            document,
+            file=f
+        )
 
 
 if __name__ == '__main__':
