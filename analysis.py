@@ -633,10 +633,10 @@ def full_analysis(data_folder, experiment_name, *analyses):
         ax.set_xlabel(lbl)
         fig.savefig(output_file)
 
-    document = document_template(experiment_name, sections)
+    document = document_template.format(experiment_name, sections)
     tex_file = os.path.join(
         output_folder,
-        '{}.tex'.format(experiment_name)
+        '{}.gen.tex'.format(experiment_name)
     )
     with open(tex_file, 'w') as f:
         print(
