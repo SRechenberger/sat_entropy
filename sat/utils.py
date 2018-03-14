@@ -85,6 +85,7 @@ class Entropytracker:
         self.size = size
         self.isInit = False
         self.h = [None]*(self.size+1)
+        self.untracked = symbols
         for x in range(1, self.size+1):
             p = x/self.size
             self.h[x] = p*math.log(p,2)
@@ -119,6 +120,7 @@ class Entropytracker:
             # Just add the entropy of the NEW probability
             # (== H(1/#elements)).
             self.entropy -= self.h[pNew]
+            self.untracked -= 1
         # Otherwise
         else:
             # Subtract the entropy of the OLD probability,
@@ -137,6 +139,7 @@ class Entropytracker:
             if pNew == 0:
                 # Just subtract the respective entropy
                 self.entropy += self.h[pOld]
+                self.untracked += 1
             # Otherwise
             else:
                 # Subtrackt the entropy of the OLD probability
@@ -153,7 +156,7 @@ class Entropytracker:
         # Return the entropy only, if the queue is sufficiently filled,
         # for it would not be valid otherwise.
         if self.queue.isFilled():
-            return self.entropy
+            return self.entropy + math.log(self.untracked, 2) if self.untracked > 0 else 0
         else:
             return self.calculateEntropy()
 
