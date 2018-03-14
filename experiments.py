@@ -51,7 +51,7 @@ experiments = {
             minEntropyF = float_range_list(0.1,0.3,0.05),
             timeLimit = 20,
         )
-    )
+    ),
     'k3-v500-r4.2': dict(
         dirs   = ['unif-k3-r4.2-v500-c2100'],
         solver = ProbSAT,
