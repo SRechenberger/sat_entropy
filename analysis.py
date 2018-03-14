@@ -280,7 +280,10 @@ def plot_cb_to_runtime(data, ax):
         cb_to_runtime['totalFlips'],
         s=1
     )
-    ax.set(xlabel=lbls['cb'], ylabel=lbls['t'])
+    ax.set(
+        xlabel=lbls['cb'],
+        ylabel=lbls['t']
+    )
 
 
 def plot_entropy_to_solve_ratio(data, ax):
@@ -317,59 +320,33 @@ def plot_entropy_to_solve_ratio(data, ax):
 
 def plot_entropy_to_cases(data, ax):
     sort_data_by_key(data, 'entropy')
-    def add_dicts(acc, line):
-        for k in acc.keys():
-            acc[k] += line[k]
-        return acc
 
-    entropy_to_sat_count = make_grouped_axes(
-        group_by(
-            data,
-            'entropy',
-            'sat',
-            combine_by = lambda ls: dict(sat=1, total=1) if ls['sat'] else dict(sat=0, total=1),
-            reduce_by = lambda ls: reduce(add_dicts, ls),
-            represented_by = lambda entropy: round(entropy, 3),
-        ),
+    processed_data = make_axes(
+        data,
         'entropy',
-        'sat',
-        'total'
+        represented_by=lambda h: round(h,3),
+        where=lambda l: l['sat'],
     )
-
 
     ax.grid(linestyle='--')
 
-    ax.scatter(
-        entropy_to_sat_count['entropy'],
-        entropy_to_sat_count['total'],
-        color='red',
-        s=1
+    ax.hist(
+        processed_data['entropy'],
+        count_different_values(processed_data['entropy'])//2,
+        # normed=True,
     )
 
-    ax.scatter(
-        entropy_to_sat_count['entropy'],
-        entropy_to_sat_count['sat'],
-        color='green',
-        s=1
+    ax.set(
+        xlabel=lbls['h'],
+        ylabel=r'$instances$'
     )
-
-    ax.legend(['total','solved'])
-    ax.set(xlabel=lbls['h'],ylabel=r'$instances$')
 
 
 
 def plot_entropy_to_runtime(data, ax):
     sort_data_by_key(data, 'entropy')
-    entropy_to_runtime_stdev = make_grouped_axes(
-        group_by(
-            data,
-            'entropy',
-            'totalFlips',
-            combine_by='totalFlips',
-            reduce_by=stat.pstdev,
-            represented_by=lambda entropy: round(entropy,3),
-            #where=lambda line: line['sat']
-        ),
+    entropy_to_runtime = make_axes(
+        data,
         'entropy',
         'totalFlips'
     )
@@ -389,18 +366,17 @@ def plot_entropy_to_runtime(data, ax):
     )
 
     ax.grid(linestyle='--')
-    ax.scatter(
+    ax.plot(
         entropy_to_runtime_mean['entropy'],
         entropy_to_runtime_mean['totalFlips'],
-        s=1,
-    )
-    ax.scatter(
-        entropy_to_runtime_stdev['entropy'],
-        entropy_to_runtime_stdev['totalFlips'],
-        s=1,
         color='r',
     )
-    ax.legend(['mean runtime', 'standard deviation'])
+    ax.scatter(
+        entropy_to_runtime['entropy'],
+        entropy_to_runtime['totalFlips'],
+        s=1,
+    )
+    ax.legend(['mean runtime', 'cases'])
     ax.set(xlabel=lbls['h'],ylabel=lbls['t'])
 
 
@@ -712,6 +688,7 @@ if __name__ == '__main__':
         full_analysis(
             data_folder,
             experiment,
+            analyses_cb,
             analyses_entropy,
             analyses_sat,
             analyses_last_run
