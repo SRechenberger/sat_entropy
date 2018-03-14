@@ -583,7 +583,8 @@ if __name__ == '__main__':
     experiments_new = [
         'k3-r4.0-r4.2-v500-cb2-cb3-quick',
         'k3-r4.0-r4.2-v500-cb2-cb3',
-        'k3-v500'
+        'k3-v500-r4.1',
+        'k3-v500-r4.1-er'
     ]
 
     data_folder = 'data'
