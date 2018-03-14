@@ -48,7 +48,27 @@ experiments = {
         config = dict(
             maxFlips = 50 * 500,
             lookBack = list(map(lambda f: f*500, range(1,3))),
-            minEntropyF = float_range_list(0.4,0.8,0.1),
+            minEntropyF = float_range_list(0.1,0.3,0.05),
+            timeLimit = 20,
+        )
+    )
+    'k3-v500-r4.2': dict(
+        dirs   = ['unif-k3-r4.2-v500-c2100'],
+        solver = ProbSAT,
+        prob   = 500,
+        config = dict(
+            maxFlips = 50 * 500,
+            timeLimit = 20
+        )
+    ),
+    'k3-v500-r4.2-er': dict(
+        dirs   = ['unif-k3-r4.2-v500-c2100'],
+        solver = ProbSAT,
+        prob   = 500,
+        config = dict(
+            maxFlips = 50 * 500,
+            lookBack = list(map(lambda f: f*500, range(1,3))),
+            minEntropyF = float_range_list(0.1,0.3,0.05),
             timeLimit = 20,
         )
     )
