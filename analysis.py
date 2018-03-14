@@ -376,7 +376,7 @@ def plot_entropy_to_runtime(data, ax):
         entropy_to_runtime['totalFlips'],
         s=1,
     )
-    ax.legend(['mean runtime', 'cases'])
+    ax.legend(['mean runtime', 'runtime'])
     ax.set(xlabel=lbls['h'],ylabel=lbls['t'])
 
 
