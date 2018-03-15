@@ -156,7 +156,7 @@ class Entropytracker:
         # Return the entropy only, if the queue is sufficiently filled,
         # for it would not be valid otherwise.
         if self.queue.isFilled():
-            return self.entropy + math.log(self.untracked, 2) if self.untracked > 0 else 0
+            return self.entropy # + math.log(self.untracked, 2) if self.untracked > 0 else 0
         else:
             return self.calculateEntropy()
 
