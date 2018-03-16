@@ -71,7 +71,17 @@ experiments = {
             minEntropyF = float_range_list(0.8,0.85,0.01),
             timeLimit = 20,
         )
-    )
+    ),
+    'k3-v500-r4.2-cb0-cb10': dict(
+        dirs   = ['unif-k3-r4.2-v500-c2100'],
+        solver = ProbSAT,
+        prob   = 500,
+        config = dict(
+            maxFlips  = 50 * 500,
+            cb        = float_range_list(0,5,0.1),
+            timeLimit = 20
+        ),
+    ),
 }
 
 short_cut = {i:k for k,i in zip(experiments.keys(), range(0,len(experiments)))}
