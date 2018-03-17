@@ -227,6 +227,7 @@ def sort_data_by_key(data, key, reverse=False):
 
 
 def plot_cb_to_entropy(data, ax):
+    sort_data_by_key(data,'cb')
     cb_to_entropy_mean = make_grouped_axes(
         group_by(
             data,
@@ -257,7 +258,7 @@ def plot_cb_to_entropy(data, ax):
         cb_to_entropy_mean['cb'],
         cb_to_entropy_mean['entropy']
     )
-    ax.legend(['runtime', 'mean runtime'])
+    ax.legend(['mean entropy', 'entropy'])
     ax.set(xlabel=lbls['cb'], ylabel=lbls['h'])
 
 
@@ -678,6 +679,7 @@ if __name__ == '__main__':
         'k3-r4.0-r4.2-v500-cb2-cb3',
         'k3-v500-r4.1',
         'k3-v500-r4.2',
+        'k3-v500-r4.2-cb0-cb10',
     ]
 
     experiments_er = [
