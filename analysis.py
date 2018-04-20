@@ -1,6 +1,5 @@
 #!/usr/bin/python
 
-import csv
 import os
 import statistics as stat
 import matplotlib.pyplot as plot
