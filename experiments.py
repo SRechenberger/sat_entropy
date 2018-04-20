@@ -82,6 +82,26 @@ experiments = {
             timeLimit = 20
         ),
     ),
+    'k3-v500-r4.1-cb0-cb10': dict(
+        dirs   = ['unif-k3-r4.1-v500-c2050'],
+        solver = ProbSAT,
+        prob   = 500,
+        config = dict(
+            maxFlips  = 50 * 500,
+            cb        = float_range_list(0,5,0.1),
+            timeLimit = 20
+        ),
+    ),
+    'k3-v500-r4.0-cb0-cb10': dict(
+        dirs   = ['unif-k3-r4.0-v500-c2000'],
+        solver = ProbSAT,
+        prob   = 500,
+        config = dict(
+            maxFlips  = 50 * 500,
+            cb        = float_range_list(0,5,0.1),
+            timeLimit = 20
+        ),
+    ),
 }
 
 short_cut = {i:k for k,i in zip(experiments.keys(), range(0,len(experiments)))}
