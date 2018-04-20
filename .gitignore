@@ -5,6 +5,11 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+#raw data
+data/*
+*.csv
+*.json
+
 # C extensions
 *.so
 
