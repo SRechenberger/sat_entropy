@@ -111,6 +111,7 @@ class ProbSAT:
         self.lookBack = lookBack
         self.seed = seed
         self.averageEntropy = 0
+        self.failed_runs = []
 
 
     def initWalk(self):
@@ -209,6 +210,13 @@ class ProbSAT:
 
             entropySum += tracker.getEntropy()/self.maxEntropy
             self.lastRunEntropy = tracker.getEntropy()/self.maxEntropy
+            self.failed_runs.append(
+                dict(
+                    entropy = self.lastRunEntropy,
+                    min_unsat = minUnsat,
+                )
+            )
+
 
         self.averageEntropy = entropySum / self.tries
         end = time.time()

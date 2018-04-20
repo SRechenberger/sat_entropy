@@ -2,6 +2,7 @@ import os
 import sys
 import time
 import random
+import json
 from io import IOBase
 from sat.utils import CNF
 from multiprocessing import Pool
@@ -132,7 +133,8 @@ class Experiment:
             earlyRestarts  = solver.earlyRestarts,
             entropy        = solver.averageEntropy,
             flipsPerSecond = solver.flipsPerSecond,
-            lastRunEntropy = solver.lastRunEntropy
+            lastRunEntropy = solver.lastRunEntropy,
+            failedRuns     = solver.failed_runs,
         )
 
     def runExperiment(self):
@@ -222,7 +224,8 @@ class Experiment:
                      outfile=None,
                      requestedColumns=None,
                      pretty=False,
-                     label=False):
+                     label=False,
+                     csv=False):
         if outfile and (type(outfile) is not str and not isinstance(outfile, IOBase)):
             raise TypeError('outfile::{} should be a str or a IOBase.'
                             .format(type(outfile)))
@@ -236,9 +239,21 @@ class Experiment:
         else:
             f = sys.stdout
 
-        f.write(self.getResultsAsString(requestedColumns=requestedColumns,
-                                        pretty=pretty,
-                                        label=label))
+        if csv:
+            f.write(
+                self.getResultsAsString(
+                    requestedColumns=requestedColumns,
+                    pretty=pretty,
+                    label=label
+                )
+            )
+        else:
+            f.write(
+                json.dumps(
+                    self.results,
+                    indent=2,
+                )
+            )
 
         if ownFile:
             f.close()

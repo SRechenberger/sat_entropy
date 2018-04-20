@@ -33,7 +33,7 @@ if __name__ == '__main__':
         sys.exit(1)
 
     repeat = 1
-    outfile_path = '{}.raw.csv'.format(experiment_name)
+    outfile_path = '{}.raw.json'.format(experiment_name)
     poolsize = 1
     input_root = ''
     output_root = ''

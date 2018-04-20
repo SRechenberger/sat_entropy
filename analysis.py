@@ -4,6 +4,7 @@ import csv
 import os
 import statistics as stat
 import matplotlib.pyplot as plot
+import json
 from matplotlib import rc
 from collections import Iterable
 from functools import reduce
@@ -111,9 +112,12 @@ def group_by(data,
 
     return to_return
 
+def load_data_json(json_file):
+    with open(json_file,'r') as f:
+        txt = f.read()
+    return json.loads(txt)
 
-
-def load_data(csv_file,
+def load_data_csv(csv_file,
               as_axes=False,
               keys=None,
               default_parser=float,
@@ -578,14 +582,20 @@ def plot_early_restarts_to_entropy(data, ax):
 
 
 def full_analysis(data_folder, experiment_name, *analyses):
-    parsers = dict(sat=bool_parser(false_value='0', true_value='1'))
-    data = load_data(
+    data = load_data_json(
         os.path.join(
             data_folder,
-            '{}.raw.csv'.format(experiment_name)
+            '{}.raw.json'.format(experiment_name)
         ),
-        parsers=parsers
     )
+    #parsers = dict(sat=bool_parser(false_value='0', true_value='1'))
+    #data = load_data(
+    #    os.path.join(
+    #        data_folder,
+    #        '{}.raw.csv'.format(experiment_name)
+    #    ),
+    #    parsers=parsers
+    #)
 
     output_folder = os.path.join(
         data_folder,
@@ -675,6 +685,7 @@ if __name__ == '__main__':
     )
 
     experiments = [
+        'k3-v20'
     ]
 
     experiments_er = [
