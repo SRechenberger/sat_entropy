@@ -103,7 +103,7 @@ experiments = {
         ),
     ),
     'k5-v250-r20': dict(
-        dirs   = ['unif-k5-v250-c5000'],
+        dirs   = ['unif-k5-r20.0-v250-c5000'],
         solver = ProbSAT,
         prob   = 500,
         config = dict(
@@ -113,7 +113,7 @@ experiments = {
         ),
     ),
     'k5-v250-r19.5': dict(
-        dirs   = ['unif-k5-v250-c4875'],
+        dirs   = ['unif-k5-r19.5-v250-c4875'],
         solver = ProbSAT,
         prob   = 500,
         config = dict(
