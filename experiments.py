@@ -102,6 +102,26 @@ experiments = {
             timeLimit = 20
         ),
     ),
+    'k5-v250-r20': dict(
+        dirs   = ['unif-k5-v250-c5000'],
+        solver = ProbSAT,
+        prob   = 500,
+        config = dict(
+            maxFlips  = 50 * 250,
+            cb        = float_range_list(0, 10, 0.1),
+            timeLimit = 20,
+        ),
+    ),
+    'k5-v250-r19.5': dict(
+        dirs   = ['unif-k5-v250-c4875'],
+        solver = ProbSAT,
+        prob   = 500,
+        config = dict(
+            maxFlips  = 50 * 250,
+            cb        = float_range_list(0, 10, 0.1),
+            timeLimit = 20,
+        ),
+    ),
 }
 
 short_cut = {i:k for k,i in zip(experiments.keys(), range(0,len(experiments)))}
