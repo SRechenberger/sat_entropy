@@ -86,6 +86,7 @@ class Entropytracker:
         self.isInit = False
         self.h = [None]*(self.size+1)
         self.untracked = symbols
+        self.symbols = symbols
         for x in range(1, self.size+1):
             p = x/self.size
             self.h[x] = p*math.log(p,2)
@@ -149,16 +150,16 @@ class Entropytracker:
             self.count[ret] -= 1
 
 
-    def getEntropy(self):
+    def getEntropy(self, relative=False):
         """ If the queue is sufficiently filled, return the entropy,
         otherwise return None.
         """
         # Return the entropy only, if the queue is sufficiently filled,
         # for it would not be valid otherwise.
         if self.queue.isFilled():
-            return self.entropy # + math.log(self.untracked, 2) if self.untracked > 0 else 0
+            return self.entropy / (math.log(self.symbols-self.untracked) if relative else 1) # + math.log(self.untracked, 2) if self.untracked > 0 else 0
         else:
-            return self.calculateEntropy()
+            return self.calculateEntropy() / (math.log(self.symbols-self.untracked) if relative else 1)
 
 
     def __len__(self):
