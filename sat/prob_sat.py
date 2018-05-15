@@ -204,9 +204,9 @@ class ProbSAT:
                     walkTracker.add(abs(lit))
                     h = walkTracker.getEntropy(relative = True) if walkTracker.queue.isFilled() else None
                     if h and h > self.minEntropy:
-                        if random.random() >= (self.minEntropy/h):
-                            self.earlyRestarts += 1
-                            break
+                        # if random.random() >= (self.minEntropy/h):
+                        self.earlyRestarts += 1
+                        break
 
             entropySum += tracker.getEntropy()/self.maxEntropy
             self.lastRunEntropy = tracker.getEntropy()/self.maxEntropy

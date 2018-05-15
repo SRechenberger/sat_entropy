@@ -684,10 +684,11 @@ if __name__ == '__main__':
     )
 
     experiments = [
-        'k3-v20'
+        #'k3-v20',
     ]
 
     experiments_er = [
+        'k3-v500-r4.2-er',
     ]
 
     data_folder = 'data'
