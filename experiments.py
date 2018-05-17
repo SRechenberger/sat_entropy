@@ -47,7 +47,7 @@ experiments = {
         prob   = 500,
         config = dict(
             maxFlips = 50 * 500,
-            lookBack = list(map(lambda f: f*500, range(1,3))),
+            lookBack = list(map(lambda f: f*500, range(1,10))),
             minEntropyF = float_range_list(0.8,0.85,0.01),
             timeLimit = 20,
         )
@@ -67,7 +67,7 @@ experiments = {
         prob   = 500,
         config = dict(
             maxFlips = 50 * 500,
-            lookBack = list(map(lambda f: f*500, range(1,3))),
+            lookBack = list(map(lambda f: f*500, range(1,10))),
             minEntropyF = float_range_list(0.8,1.0,0.01),
             timeLimit = 20,
         )
