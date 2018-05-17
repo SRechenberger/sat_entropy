@@ -107,6 +107,7 @@ class ProbSAT:
         self.maxEntropy=math.log(self.formula.numVars, 2)
         #if self.withLookBack:
         self.minEntropy = self.maxEntropy*minEntropyF
+        self.minEntropyF = minEntropyF
 
         self.lookBack = lookBack
         self.seed = seed
@@ -203,10 +204,10 @@ class ProbSAT:
                 if self.withLookBack:
                     walkTracker.add(abs(lit))
                     h = walkTracker.getEntropy(relative = True) if walkTracker.queue.isFilled() else None
-                    if h and h > self.minEntropy:
-                        # if random.random() >= (self.minEntropy/h):
-                        self.earlyRestarts += 1
-                        break
+                    if h and h > self.minEntropyF:
+                        if random.random() >= (self.minEntropyF/h):
+                            self.earlyRestarts += 1
+                            break
 
             entropySum += tracker.getEntropy()/self.maxEntropy
             self.lastRunEntropy = tracker.getEntropy()/self.maxEntropy
