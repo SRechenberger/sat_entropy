@@ -225,7 +225,8 @@ class Experiment:
                      requestedColumns=None,
                      pretty=False,
                      label=False,
-                     csv=False):
+                     csv=False,
+                     res=None):
         if outfile and (type(outfile) is not str and not isinstance(outfile, IOBase)):
             raise TypeError('outfile::{} should be a str or a IOBase.'
                             .format(type(outfile)))
@@ -250,7 +251,7 @@ class Experiment:
         else:
             f.write(
                 json.dumps(
-                    self.results,
+                    res if res else self.results,
                     indent=2,
                 )
             )
