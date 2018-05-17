@@ -84,7 +84,7 @@ class Entropytracker:
         self.entropy = 0
         self.size = size
         self.isInit = False
-        self.h = [None]*(self.size+1)
+        self.h = [0]*(self.size+1)
         self.untracked = symbols
         self.symbols = symbols
         for x in range(1, self.size+1):
@@ -109,26 +109,6 @@ class Entropytracker:
         # If the queue is filled, it drops a value, if a new one is added;
         # this value is then to be deleted from the tracker.
         ret = self.queue.write(elem)
-        # Calculate the OLD probability of the newly added element
-        # (may be 0).
-        pOld = self.count[elem]
-        # Calculate the NEW probability of the newly added element
-        # (is at least 1/#elements)
-        pNew = pOld+1
-        # If the OLD probability is 0, id est, the element was
-        # not counted before.
-        if pOld == 0:
-            # Just add the entropy of the NEW probability
-            # (== H(1/#elements)).
-            self.entropy -= self.h[pNew]
-            self.untracked -= 1
-        # Otherwise
-        else:
-            # Subtract the entropy of the OLD probability,
-            # and add the entropy of the NEW one.
-            self.entropy += self.h[pOld] - self.h[pNew]
-        # Increment the counter then.
-        self.count[elem] += 1
         # If the queue dropped an element
         if ret:
             # calculate the OLD probability of this dropped element
@@ -148,6 +128,27 @@ class Entropytracker:
                 self.entropy += self.h[pOld] - self.h[pNew]
             # Decrement the counter then.
             self.count[ret] -= 1
+        # Calculate the OLD probability of the newly added element
+        # (may be 0).
+        pOld = self.count[elem]
+        # Calculate the NEW probability of the newly added element
+        # (is at least 1/#elements)
+        pNew = pOld+1
+        # If the OLD probability is 0, id est, the element was
+        # not counted before.
+        if pOld == 0:
+            # Just add the entropy of the NEW probability
+            # (== H(1/#elements)).
+            self.entropy -= self.h[pNew]
+            self.untracked -= 1
+        # Otherwise
+        else:
+            # Subtract the entropy of the OLD probability,
+            # and add the entropy of the NEW one.
+            #print("{} {} {}".format(len(self.h), pOld, pNew))
+            self.entropy += self.h[pOld] - self.h[pNew]
+        # Increment the counter then.
+        self.count[elem] += 1
 
 
     def getEntropy(self, relative=False):
@@ -156,10 +157,12 @@ class Entropytracker:
         """
         # Return the entropy only, if the queue is sufficiently filled,
         # for it would not be valid otherwise.
+        tracked = self.symbols - self.untracked
+        tracked = tracked if tracked is not 1 else (tracked - 0.01)
         if self.queue.isFilled():
-            return self.entropy / (math.log(self.symbols-self.untracked) if relative else 1) # + math.log(self.untracked, 2) if self.untracked > 0 else 0
+            return self.entropy / (math.log(tracked, 2) if relative else 1) # + math.log(self.untracked, 2) if self.untracked > 0 else 0
         else:
-            return self.calculateEntropy() / (math.log(self.symbols-self.untracked) if relative else 1)
+            return self.calculateEntropy() / (math.log(tracked, 2) if relative else 1)
 
 
     def __len__(self):
