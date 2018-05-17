@@ -104,6 +104,7 @@ if __name__ == '__main__':
 
         total_time = 0
         need_label = True
+        results = []
         while i < repeat:
             # Initialize the experiment.
             try:
@@ -154,24 +155,28 @@ if __name__ == '__main__':
                 )
                 sys.exit(1)
 
-
-            # Extract and print the results
-            try:
-                exp.printResults(
-                    outfile=outfile,
-                    label=need_label
-                )
-                need_label = False
-            except Exception as e:
-                print(
-                    'Error: While printing the experiments results: {}.'
-                    .format(e),
-                    file=sys.stderr
-                )
-                sys.exit(1)
+            # Extract the results
+            results += exp.results
 
             # Repeat
             i += 1
+
+        # Print the results
+        try:
+            exp.printResults(
+                outfile=outfile,
+                label=need_label,
+                res=results,
+            )
+            need_label = False
+        except Exception as e:
+            print(
+                'Error: While printing the experiments results: {}.'
+                .format(e),
+                file=sys.stderr
+            )
+            sys.exit(1)
+
 
     outfile.close()
     sys.exit(0)
