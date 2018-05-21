@@ -685,6 +685,8 @@ if __name__ == '__main__':
 
     experiments = [
         #'k3-v20',
+        # 'k5-v250-r20',
+        'k5-v250-r19.5',
     ]
 
     experiments_er = [
