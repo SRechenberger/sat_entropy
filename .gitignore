@@ -9,6 +9,7 @@ __pycache__/
 data/*
 *.csv
 *.json
+*.db
 
 # C extensions
 *.so
