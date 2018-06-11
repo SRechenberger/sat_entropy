@@ -120,22 +120,14 @@ class Experiment:
         solver = self.solver(filepath,**prepare_config())
         solver.solve(self.seed)
         return dict(
-            variables      = solver.formula.numVars,
-            clauses        = solver.formula.numClauses,
-            ratio          = solver.formula.ratio,
-            cb             = solver.cb,
-            sat            = 1 if solver.sat else 0,
-            # assignment    = solver.assignment,
-            tries          = solver.tries,
-            flips          = solver.flips,
-            totalFlips     = ((solver.tries-1) * solver.maxFlips + solver.flips) * (10 if solver.sat == 0 else 1),
-            minEntropy     = solver.minEntropy/solver.maxEntropy,
-            lookback       = solver.lookBack,
-            earlyRestarts  = solver.earlyRestarts,
-            entropy        = solver.averageEntropy,
-            flipsPerSecond = solver.flipsPerSecond,
-            lastRunEntropy = solver.lastRunEntropy,
-            failedRuns     = solver.failed_runs,
+            variables   = solver.formula.numVars,
+            clauses     = solver.formula.numClauses,
+            ratio       = solver.formula.ratio,
+            cb          = solver.cb,
+            sat         = 1 if solver.sat else 0,
+            min_entropy  = solver.minEntropy/solver.maxEntropy,
+            lookback    = solver.lookBack,
+            runs        = solver.runs,
         )
 
     def runExperiment(self):

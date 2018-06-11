@@ -112,7 +112,7 @@ class ProbSAT:
         self.lookBack = lookBack
         self.seed = seed
         self.averageEntropy = 0
-        self.failed_runs = []
+        self.runs = []
 
 
     def initWalk(self):
@@ -165,7 +165,10 @@ class ProbSAT:
             tracker = Entropytracker(self.maxFlips, self.formula.numVars)
             if self.withLookBack:
                 walkTracker = Entropytracker(self.lookBack, self.formula.numVars)
-            record = dict(early = False)
+            record = dict(
+                early_restart = False,
+                flips         = self.maxFlips
+            )
             for f in range(1, self.maxFlips+1):
 
                 self.flips = f
@@ -208,16 +211,17 @@ class ProbSAT:
                     if h and h > self.minEntropyF:
                         if random.random() >= (self.minEntropyF/h):
                             self.earlyRestarts += 1
-                            record['early'] = True
+                            record['early_restart'] = True
                             record['flips'] = f
                             break
 
             entropySum += tracker.getEntropy()/self.maxEntropy
             self.lastRunEntropy = tracker.getEntropy()/self.maxEntropy
-            record['entropy_estim'] = walkTracker.getEntropy(relative = True)
+            record['entropy_estim_at_restart'] = walkTracker.getEntropy(relative = True)
             record['entropy'] = self.lastRunEntropy
             record['min_unsat'] = minUnsat
-            self.failed_runs.append(record)
+            record['unsat_at_restart'] = unsat
+            self.runs.append(record)
 
 
         self.averageEntropy = entropySum / self.tries
