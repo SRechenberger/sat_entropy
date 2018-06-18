@@ -2,6 +2,7 @@ from sat.utils import *
 import time
 import sys
 import random
+import copy
 
 class ProbSAT:
     # TODO needs overhaul!!!
@@ -151,40 +152,40 @@ class ProbSAT:
         random.seed(seed)
 
         begin = time.time()
-        entropySum = 0
-        averageFlipTime=0
-        minimalFlipTime=sys.maxsize
-        maximalFlipTime=0
+
         for t in range(1, self.maxTries+1):
             # print('c Try #{}'.format(t))
             self.tries = t
             if self.timeLimit and time.time() - begin > self.timeLimit:
                 break
+
             self.initWalk()
+
+            # To measure the hamming distance from the initial assignment
+            hamming_dist = 0
+            initial_assignment = copy.deepcopy(self.assignment)
+
+
             minUnsat = len(self.falseClauses)
-            tracker = Entropytracker(self.maxFlips, self.formula.numVars)
             if self.withLookBack:
                 walkTracker = Entropytracker(self.lookBack, self.formula.numVars)
             record = dict(
                 early_restart = False,
-                flips         = self.maxFlips
+                steps         = []
             )
             for f in range(1, self.maxFlips+1):
-
                 self.flips = f
                 unsat = len(self.falseClauses)
                 if unsat < minUnsat:
                     minUnsat = unsat
                 # if (a is model for F) then
-                #   reeturn a
+                #   return a
                 if unsat == 0:
-                    self.sat = True
-                    self.lastRunEntropy = tracker.getEntropy()/self.maxEntropy
-                    entropySum += tracker.getEntropy() / self.maxEntropy
-                    self.averageEntropy = entropySum / self.tries
                     end = time.time()
-                    self.flipsPerSecond = (t * self.maxFlips + f) / (end - begin)
+                    self.time = end-begin
+                    self.sat = True
                     return
+
                 # C_u <- randomly selected unsat clause
                 ci  = self.falseClauses.lst[random.randint(0, unsat-1)]
                 c   = self.formula.clauses[ci]
@@ -197,34 +198,37 @@ class ProbSAT:
                 # var <- random variable x according to probability
                 #   f(x,a)/sum(x in C_u, f(x,a))
                 lit = choose(c, ws)
-                # lit = random.choices(c, weights=ws)[0]
 
                 # flip(var)
-                self.scoreboard.flip(abs(lit),
-                                     self.formula,
-                                     self.assignment,
-                                     self.falseClauses)
-                tracker.add(abs(lit))
+                self.scoreboard.flip(
+                    abs(lit),
+                    self.formula,
+                    self.assignment,
+                    self.falseClauses
+                )
+                walkTracker.add(abs(lit))
+
+                # Measuring step data
+                hamming_dist += 1 if initial_assignment.isTrue(lit) != self.assignment.isTrue(lit) else -1
+                record['steps'].append(
+                    dict(
+                        estim_entropy = walkTracker.getEntropy(),
+                        hamming_dist  = hamming_dist,
+                        unsat         = unsat,
+                        flipped       = abs(lit),
+                    )
+                )
                 if self.withLookBack:
-                    walkTracker.add(abs(lit))
                     h = walkTracker.getEntropy(relative = True) if walkTracker.queue.isFilled() else None
                     if h and h > self.minEntropyF:
                         if random.random() >= (self.minEntropyF/h):
                             self.earlyRestarts += 1
                             record['early_restart'] = True
-                            record['flips'] = f
                             break
 
-            entropySum += tracker.getEntropy()/self.maxEntropy
-            self.lastRunEntropy = tracker.getEntropy()/self.maxEntropy
-            record['entropy_estim_at_restart'] = walkTracker.getEntropy(relative = True)
-            record['entropy'] = self.lastRunEntropy
-            record['min_unsat'] = minUnsat
-            record['unsat_at_restart'] = unsat
             self.runs.append(record)
 
 
-        self.averageEntropy = entropySum / self.tries
         end = time.time()
-        self.flipsPerSecond = ((t-1) * self.maxFlips + f) / (end - begin)
+        self.time = end-begin
         self.sat = False
