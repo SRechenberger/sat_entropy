@@ -14,12 +14,12 @@ make_algorithm_run = """
 CREATE TABLE IF NOT EXISTS algorithm_run
     ( id            INTEGER PRIMARY KEY
     , solver        TEXT
+    , clause_len    INTEGER
     , variables     INTEGER
     , clauses       INTEGER
-    , ratio         REAL
     , cb            REAL
     , lookback      INTEGER
-    , minEntropy    REAL
+    , min_entropy   REAL
     , sat           BOOL
     )
 """
@@ -29,24 +29,31 @@ CREATE TABLE IF NOT EXISTS search_run
     ( id               INTEGER PRIMARY KEY
     , algorithm_run_id INTEGER
     , early_restart    BOOL
-    , flips            INTEGER
-    , entropy          REAL
-    , entropy_estim_at_restart REAL
-    , min_unsat        INTEGER
-    , unsat_at_restart INTEGER
     , FOREIGN KEY(algorithm_run_id) REFERENCES algorithm_run(id)
+    )
+"""
+
+make_search_step = """
+CREATE TABLE IF NOT EXISTS search_step
+    ( id            INTEGER PRIMARY KEY
+    , search_run_id INTEGER
+    , estim_entropy REAL
+    , hamming_dist  INTEGER
+    , unsat         INTEGER
+    , flipped       INTEGER
+    , FOREIGN KEY(search_run_id) REFERENCES search_run(id)
     )
 """
 
 save_algorithm_run = """
 INSERT INTO algorithm_run
     ( solver
+    , clause_len
     , variables
     , clauses
-    , ratio
     , cb
     , lookback
-    , minEntropy
+    , min_entropy
     , sat
     )
 VALUES
@@ -57,14 +64,21 @@ save_search_run = """
 INSERT INTO search_run
     ( algorithm_run_id
     , early_restart
-    , flips
-    , entropy
-    , entropy_estim_at_restart
-    , min_unsat
-    , unsat_at_restart
     )
 VALUES
-    (?,?,?,?,?,?,?)
+    (?,?)
+"""
+
+save_search_step = """
+INSERT INTO search_step
+    ( search_run_id
+    , estim_entropy
+    , hamming_dist
+    , unsat
+    , flipped
+    )
+VALUES
+    (?,?,?,?,?)
 """
 
 if __name__ == '__main__':
@@ -138,12 +152,6 @@ if __name__ == '__main__':
 
 
     outfile_path = os.path.join(output_root, outfile_path)
-    # Create Database, if not existent.
-    with sqlite3.connect(outfile_path, timeout=5*60) as conn:
-        c = conn.cursor()
-        c.execute(make_algorithm_run)
-        c.execute(make_search_run)
-        conn.commit()
     # Running the experiment.
     try:
         experiment = experiments[experiment_name]
@@ -163,99 +171,112 @@ if __name__ == '__main__':
         sys.exit(1)
 
 
-    total_time = 0
-    need_label = True
-    results = []
-    i = 0
-    while i < repeat:
-        # Initialize the experiment.
-        try:
-            dirs = list(
-                map(
-                    lambda d: os.path.join(input_root,d),
-                    experiment['dirs']
-                )
-            )
-            exp = Experiment(
-                directories = dirs,
-                solver = experiment['solver'],
-                prob   = experiment['prob'],
-                config = experiment['config'],
-                poolsize = poolsize,
-            )
-        except Exception as e:
-            print(
-                'Error: While initializing the experiment: {}.'
-                .format(e),
-                file=sys.stderr
-            )
-            sys.exit(1)
-
-        # Run the experiment.
-        try:
-            print(
-                'Experiment #{} {}... '.format(i, experiment_name),
-                file=sys.stdout,
-                end='',
-                flush=True
-            )
-            exp_begin = time.time()
-            exp.runExperiment()
-            exp_end = time.time()
-            exp_dur = exp_end - exp_begin
-            print(
-                'done after {:10d} seconds.'.format(int(exp_dur)),
-                file=sys.stdout,
-                end='\n',
-                flush=True
-            )
-        except ValueError as e:
-            print(
-                'Error: While running the experiment: {}.'
-                .format(e),
-                file=sys.stderr
-            )
-            sys.exit(1)
-
-        # Extract the results
-        results += exp.results
-
-        # Repeat
-        i += 1
-
-    # Save the results
     with sqlite3.connect(outfile_path, timeout=5*60) as conn:
         c = conn.cursor()
-        for result in results:
-            c.execute(
-                save_algorithm_run,
-                (
-                    "probSAT",
-                    result['variables'],
-                    result['clauses'],
-                    result['ratio'],
-                    result['cb'],
-                    result['lookback'],
-                    result['min_entropy'],
-                    result['sat']
-                )
-            )
-            lastrowid = c.lastrowid
-            for run in result['runs']:
-                c.execute(
-                    save_search_run,
-                    (
-                        lastrowid,
-                        run['early_restart'],
-                        run['flips'],
-                        run['entropy'],
-                        run['entropy_estim_at_restart'],
-                        run['min_unsat'],
-                        run['unsat_at_restart']
-                    )
-                )
+        c.execute(make_algorithm_run)
+        c.execute(make_search_run)
+        c.execute(make_search_step)
         conn.commit()
 
+        total_time = 0
+        need_label = True
+        i = 0
 
+        while i < repeat:
+            # results = []
+            # Initialize the experiment.
+            try:
+                dirs = list(
+                    map(
+                        lambda d: os.path.join(input_root,d),
+                        experiment['dirs']
+                    )
+                )
+                exp = Experiment(
+                    directories = dirs,
+                    solver = experiment['solver'],
+                    prob   = experiment['prob'],
+                    config = experiment['config'],
+                    poolsize = poolsize,
+                )
+            except Exception as e:
+                print(
+                    'Error: While initializing the experiment: {}.'
+                    .format(e),
+                    file=sys.stderr
+                )
+                sys.exit(1)
+
+            # Run the experiment.
+            try:
+                print(
+                    'Experiment #{} {}... '.format(i, experiment_name),
+                    file=sys.stdout,
+                    end='',
+                    flush=True
+                )
+                exp_begin = time.time()
+                exp.runExperiment()
+                exp_end = time.time()
+                exp_dur = exp_end - exp_begin
+                print(
+                    'done after {:10d} seconds.'.format(int(exp_dur)),
+                    file=sys.stdout,
+                    end='\n',
+                    flush=True
+                )
+            except ValueError as e:
+                print(
+                    'Error: While running the experiment: {}.'
+                    .format(e),
+                    file=sys.stderr
+                )
+                sys.exit(1)
+
+            # Extract the results
+            # results += exp.results
+
+
+            # Save the results
+            # with sqlite3.connect(outfile_path, timeout=5*60) as conn:
+            for result in exp.results:
+                c.execute(
+                    save_algorithm_run,
+                    (
+                        "probSAT",
+                        result['max_clause_len'],
+                        result['variables'],
+                        result['clauses'],
+                        result['cb'],
+                        result['lookback'],
+                        result['min_entropy'],
+                        result['sat'],
+                    )
+                )
+                lastrowid = c.lastrowid
+                for run in result['runs']:
+                    c.execute(
+                        save_search_run,
+                        (
+                            lastrowid,
+                            run['early_restart'],
+                        ),
+                    )
+                    lastrowid2 = c.lastrowid
+                    for step in run['steps']:
+                        c.execute(
+                            save_search_step,
+                            (
+                                lastrowid2,
+                                step['estim_entropy'],
+                                step['hamming_dist'],
+                                step['unsat'],
+                                step['flipped'],
+                            ),
+                        )
+            conn.commit()
+
+            # Repeat
+            i += 1
 
     sys.exit(0)
