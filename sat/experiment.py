@@ -120,14 +120,14 @@ class Experiment:
         solver = self.solver(filepath,**prepare_config())
         solver.solve(self.seed)
         return dict(
+            max_clause_len = solver.formula.maxClauseLength,
             variables   = solver.formula.numVars,
             clauses     = solver.formula.numClauses,
-            ratio       = solver.formula.ratio,
             cb          = solver.cb,
-            sat         = 1 if solver.sat else 0,
-            min_entropy  = solver.minEntropy/solver.maxEntropy,
+            min_entropy = solver.minEntropy/solver.maxEntropy,
             lookback    = solver.lookBack,
             runs        = solver.runs,
+            sat         = solver.sat,
         )
 
     def runExperiment(self):
