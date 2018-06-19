@@ -10,4 +10,4 @@
 
 module load devel/python/3.5.2
 
-python main.py k3-v500-r4.2-er --input_root $WORK/formulae --output_root $WORK/sat_experiment_data --outfile data.db --poolsize 16 --repeat 10
+python main.py k3-v500-r4.2-er --input_root $WORK/formulae --output_root $WORK/sat_experiment_data --poolsize 16 --repeat 10
