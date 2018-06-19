@@ -167,8 +167,8 @@ class ProbSAT:
 
 
             minUnsat = len(self.falseClauses)
-            if self.withLookBack:
-                walkTracker = Entropytracker(self.lookBack, self.formula.numVars)
+            #if self.withLookBack:
+            walkTracker = Entropytracker(self.lookBack, self.formula.numVars)
             record = dict(
                 early_restart = False,
                 steps         = []
