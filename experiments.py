@@ -35,7 +35,7 @@ experiments = {
     'k3-v500-r4.1': dict(
         dirs   = ['unif-k3-r4.1-v500-c2050'],
         solver = ProbSAT,
-        prob   = 500,
+        prob   = 50,
         config = dict(
             maxFlips = 50 * 500,
             timeLimit = 20
@@ -44,7 +44,7 @@ experiments = {
     'k3-v500-r4.1-er': dict(
         dirs   = ['unif-k3-r4.1-v500-c2050'],
         solver = ProbSAT,
-        prob   = 500,
+        prob   = 50,
         config = dict(
             maxFlips = 50 * 500,
             lookBack = list(map(lambda f: f*500, range(1,10))),
@@ -55,7 +55,7 @@ experiments = {
     'k3-v500-r4.2': dict(
         dirs   = ['unif-k3-r4.2-v500-c2100'],
         solver = ProbSAT,
-        prob   = 500,
+        prob   = 50,
         config = dict(
             maxFlips = 50 * 500,
             timeLimit = 20
@@ -64,7 +64,7 @@ experiments = {
     'k3-v500-r4.2-er': dict(
         dirs   = ['unif-k3-r4.2-v500-c2100'],
         solver = ProbSAT,
-        prob   = 500,
+        prob   = 50,
         config = dict(
             maxFlips = 50 * 500,
             lookBack = list(map(lambda f: f*500, range(1,10))),
@@ -86,7 +86,7 @@ experiments = {
     'k3-v500-r4.2-cb0-cb10': dict(
         dirs   = ['unif-k3-r4.2-v500-c2100'],
         solver = ProbSAT,
-        prob   = 500,
+        prob   = 50,
         config = dict(
             maxFlips  = 50 * 500,
             cb        = float_range_list(0,5,0.1),
@@ -96,7 +96,7 @@ experiments = {
     'k3-v500-r4.1-cb0-cb10': dict(
         dirs   = ['unif-k3-r4.1-v500-c2050'],
         solver = ProbSAT,
-        prob   = 500,
+        prob   = 50,
         config = dict(
             maxFlips  = 50 * 500,
             cb        = float_range_list(0,5,0.1),
@@ -106,7 +106,7 @@ experiments = {
     'k3-v500-r4.0-cb0-cb10': dict(
         dirs   = ['unif-k3-r4.0-v500-c2000'],
         solver = ProbSAT,
-        prob   = 500,
+        prob   = 50,
         config = dict(
             maxFlips  = 50 * 500,
             cb        = float_range_list(0,5,0.1),
@@ -116,7 +116,7 @@ experiments = {
     'k5-v250-r20': dict(
         dirs   = ['unif-k5-r20.0-v250-c5000'],
         solver = ProbSAT,
-        prob   = 500,
+        prob   = 50,
         config = dict(
             maxFlips  = 50 * 250,
             cb        = float_range_list(0, 10, 0.1),
@@ -126,7 +126,7 @@ experiments = {
     'k5-v250-r19.5': dict(
         dirs   = ['unif-k5-r19.5-v250-c4875'],
         solver = ProbSAT,
-        prob   = 500,
+        prob   = 50,
         config = dict(
             maxFlips  = 50 * 250,
             cb        = float_range_list(0, 10, 0.1),
