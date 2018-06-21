@@ -233,6 +233,5 @@ class ProbSAT:
 
 
         end = time.time()
-        print(len(self.runs))
         self.time = end-begin
         self.sat = False
