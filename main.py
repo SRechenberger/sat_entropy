@@ -14,12 +14,14 @@ make_algorithm_run = """
 CREATE TABLE IF NOT EXISTS algorithm_run
     ( id            INTEGER PRIMARY KEY
     , solver        TEXT
-    , clause_len    INTEGER
+    , formula_fname TEXT
+    , max_clause_len    INTEGER
     , variables     INTEGER
     , clauses       INTEGER
     , cb            REAL
+    , reference_entropy REAL
     , lookback      INTEGER
-    , min_entropy   REAL
+    , time          INTEGER
     , sat           BOOL
     )
 """
@@ -28,57 +30,45 @@ make_search_run = """
 CREATE TABLE IF NOT EXISTS search_run
     ( id               INTEGER PRIMARY KEY
     , algorithm_run_id INTEGER
+    , flips            INTEGER
     , early_restart    BOOL
+    , entropy          REAL
+    , entropy_estim_at_restart REAL
+    , minimal_unsat    INTEGER
+    , last_unsat       INTEGER
     , FOREIGN KEY(algorithm_run_id) REFERENCES algorithm_run(id)
-    )
-"""
-
-make_search_step = """
-CREATE TABLE IF NOT EXISTS search_step
-    ( id            INTEGER PRIMARY KEY
-    , search_run_id INTEGER
-    , estim_entropy REAL
-    , hamming_dist  INTEGER
-    , unsat         INTEGER
-    , flipped       INTEGER
-    , FOREIGN KEY(search_run_id) REFERENCES search_run(id)
     )
 """
 
 save_algorithm_run = """
 INSERT INTO algorithm_run
     ( solver
-    , clause_len
+    , formula_fname
+    , max_clause_len
     , variables
     , clauses
     , cb
+    , reference_entropy
     , lookback
-    , min_entropy
+    , time
     , sat
     )
 VALUES
-    (?,?,?,?,?,?,?,?)
+    (?,?,?,?,?,?,?,?,?,?)
 """
 
 save_search_run = """
 INSERT INTO search_run
     ( algorithm_run_id
+    , flips
     , early_restart
+    , entropy
+    , entropy_estim_at_restart
+    , minimal_unsat
+    , last_unsat
     )
 VALUES
-    (?,?)
-"""
-
-save_search_step = """
-INSERT INTO search_step
-    ( search_run_id
-    , estim_entropy
-    , hamming_dist
-    , unsat
-    , flipped
-    )
-VALUES
-    (?,?,?,?,?)
+    (?,?,?,?,?,?,?)
 """
 
 if __name__ == '__main__':
@@ -175,7 +165,6 @@ if __name__ == '__main__':
         c = conn.cursor()
         c.execute(make_algorithm_run)
         c.execute(make_search_run)
-        c.execute(make_search_step)
         conn.commit()
 
         total_time = 0
@@ -244,12 +233,14 @@ if __name__ == '__main__':
                     save_algorithm_run,
                     (
                         "probSAT",
+                        result['formula_fname'],
                         result['max_clause_len'],
                         result['variables'],
                         result['clauses'],
                         result['cb'],
                         result['lookback'],
-                        result['min_entropy'],
+                        result['reference_entropy'],
+                        result['time'],
                         result['sat'],
                     )
                 )
@@ -259,21 +250,14 @@ if __name__ == '__main__':
                         save_search_run,
                         (
                             lastrowid,
+                            run['flips'],
                             run['early_restart'],
+                            run['entropy'],
+                            run['entropy_estim_at_restart'],
+                            run['minimal_unsat'],
+                            run['last_unsat'],
                         ),
                     )
-                    lastrowid2 = c.lastrowid
-                    for step in run['steps']:
-                        c.execute(
-                            save_search_step,
-                            (
-                                lastrowid2,
-                                step['estim_entropy'],
-                                step['hamming_dist'],
-                                step['unsat'],
-                                step['flipped'],
-                            ),
-                        )
             conn.commit()
 
             # Repeat

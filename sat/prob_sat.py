@@ -47,6 +47,7 @@ class ProbSAT:
             self.formula = formula
         elif type(formula) == str:
             self.formula = CNF(formula)
+            self.formula_fname = formula
         else:
             raise TypeError("formula = {} is neither a cnf-formula nor a string"
                             .format(formula))
@@ -154,36 +155,42 @@ class ProbSAT:
         begin = time.time()
 
         for t in range(1, self.maxTries+1):
-            # print('c Try #{}'.format(t))
-            self.tries = t
+
             if self.timeLimit and time.time() - begin > self.timeLimit:
                 break
 
+            entropy_tracker = Entropytracker(self.maxFlips, self.formula.numVars)
+
             self.initWalk()
 
-            # To measure the hamming distance from the initial assignment
-            hamming_dist = 0
-            initial_assignment = copy.deepcopy(self.assignment)
-
-
             minUnsat = len(self.falseClauses)
-            #if self.withLookBack:
-            walkTracker = Entropytracker(self.lookBack, self.formula.numVars)
+
+            if self.withLookBack:
+                walkTracker = Entropytracker(self.lookBack, self.formula.numVars)
+
+
+            # Default information for this run
             record = dict(
-                early_restart = False,
-                steps         = []
+                flips                    = None,
+                early_restart            = False,
+                entropy                  = None,
+                entropy_estim_at_restart = None,
+                minimal_unsat            = None,
+                last_unsat               = None,
             )
             for f in range(1, self.maxFlips+1):
-                self.flips = f
+                record['flips'] = f
                 unsat = len(self.falseClauses)
                 if unsat < minUnsat:
                     minUnsat = unsat
+
                 # if (a is model for F) then
                 #   return a
                 if unsat == 0:
                     end = time.time()
                     self.time = end-begin
                     self.sat = True
+                    print(len(self.runs))
                     return
 
                 # C_u <- randomly selected unsat clause
@@ -198,6 +205,7 @@ class ProbSAT:
                 # var <- random variable x according to probability
                 #   f(x,a)/sum(x in C_u, f(x,a))
                 lit = choose(c, ws)
+                entropy_tracker.add(abs(lit))
 
                 # flip(var)
                 self.scoreboard.flip(
@@ -206,19 +214,11 @@ class ProbSAT:
                     self.assignment,
                     self.falseClauses
                 )
-                walkTracker.add(abs(lit))
 
                 # Measuring step data
-                hamming_dist += 1 if initial_assignment.isTrue(lit) != self.assignment.isTrue(lit) else -1
-                record['steps'].append(
-                    dict(
-                        estim_entropy = walkTracker.getEntropy(),
-                        hamming_dist  = hamming_dist,
-                        unsat         = unsat,
-                        flipped       = abs(lit),
-                    )
-                )
                 if self.withLookBack:
+                    walkTracker.add(abs(lit))
+                    record['entropy_estim_at_restart'] = walkTracker.getEntropy(relative = True)
                     h = walkTracker.getEntropy(relative = True) if walkTracker.queue.isFilled() else None
                     if h and h > self.minEntropyF:
                         if random.random() >= (self.minEntropyF/h):
@@ -226,9 +226,13 @@ class ProbSAT:
                             record['early_restart'] = True
                             break
 
+            record['minimal_unsat'] = minUnsat
+            record['last_unsat']    = unsat
+            record['entropy']       = entropy_tracker.getEntropy(relative = True)
             self.runs.append(record)
 
 
         end = time.time()
+        print(len(self.runs))
         self.time = end-begin
         self.sat = False
