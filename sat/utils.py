@@ -151,7 +151,7 @@ class Entropytracker:
         self.count[elem] += 1
 
 
-    def getEntropy(self, relative=False):
+    def getEntropy(self, relative=False, force = False):
         """ If the queue is sufficiently filled, return the entropy,
         otherwise return None.
         """
@@ -161,8 +161,10 @@ class Entropytracker:
         tracked = tracked if tracked is not 1 else (tracked - 0.01)
         if self.queue.isFilled():
             return self.entropy / (math.log(tracked, 2) if relative else 1) # + math.log(self.untracked, 2) if self.untracked > 0 else 0
-        else:
+        elif force:
             return self.calculateEntropy() / (math.log(tracked, 2) if relative else 1)
+        else:
+            return None
 
 
     def __len__(self):

@@ -178,11 +178,15 @@ class ProbSAT:
                 minimal_unsat            = None,
                 last_unsat               = None,
             )
+            self.runs.append(record)
             for f in range(1, self.maxFlips+1):
-                record['flips'] = f
                 unsat = len(self.falseClauses)
                 if unsat < minUnsat:
                     minUnsat = unsat
+
+                record['flips'] = f
+                record['minimal_unsat'] = minUnsat
+                record['last_unsat']    = unsat
 
                 # if (a is model for F) then
                 #   return a
@@ -190,7 +194,10 @@ class ProbSAT:
                     end = time.time()
                     self.time = end-begin
                     self.sat = True
-                    print(len(self.runs))
+                    record['entropy'] = entropy_tracker.getEntropy(
+                        relative = True,
+                        force = True
+                    )
                     return
 
                 # C_u <- randomly selected unsat clause
@@ -218,19 +225,18 @@ class ProbSAT:
                 # Measuring step data
                 if self.withLookBack:
                     walkTracker.add(abs(lit))
-                    record['entropy_estim_at_restart'] = walkTracker.getEntropy(relative = True)
-                    h = walkTracker.getEntropy(relative = True) if walkTracker.queue.isFilled() else None
+                    h = walkTracker.getEntropy(relative = True)
+                    record['entropy_estim_at_restart'] = h
                     if h and h > self.minEntropyF:
                         if random.random() >= (self.minEntropyF/h):
                             self.earlyRestarts += 1
                             record['early_restart'] = True
                             break
 
-            record['minimal_unsat'] = minUnsat
-            record['last_unsat']    = unsat
-            record['entropy']       = entropy_tracker.getEntropy(relative = True)
-            self.runs.append(record)
-
+            record['entropy'] = entropy_tracker.getEntropy(
+                relative = True,
+                force = True
+            )
 
         end = time.time()
         self.time = end-begin
