@@ -49,13 +49,12 @@ def fetch_axes(db_conn, query, *args):
     args, and returns the data as axes """
     return list(zip(*db_conn.cursor().execute(query, args)))
 
-
-
 if __name__ == '__main__':
-    with sqlite3.connect('data/k3-v500-r4.1-er.raw.db') as db:
-        x,y = fetch_axes(
+    with sqlite3.connect('data/k3-v500-r4.1.raw.db') as db:
+        x, = fetch_axes(
             db,
-            'SELECT algorithm_run.id, COUNT(search_run.id) FROM algorithm_run JOIN search_run ON algorithm_run.id = search_run.algorithm_run_id GROUP BY algorithm_run.id'
+            #'SELECT algorithm_run.id, COUNT(search_run.id) FROM algorithm_run JOIN search_run ON algorithm_run.id = search_run.algorithm_run_id GROUP BY algorithm_run.id'
+            'SELECT id FROM algorithm_run WHERE sat = 0',
         )
-        seaborn.distplot(y)
-        plot.show
+        #seaborn.distplot(y)
+        print(x)
