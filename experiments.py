@@ -44,7 +44,7 @@ experiments = {
     'k3-v500-r4.1': dict(
         dirs   = ['unif-k3-r4.1-v500-c2050'],
         solver = ProbSAT,
-        prob   = 2,
+        prob   = 100,
         config = dict(
             maxFlips = 50 * 500,
             timeLimit = 20
