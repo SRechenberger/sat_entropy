@@ -2,7 +2,6 @@ from sat.utils import *
 import time
 import sys
 import random
-import copy
 
 class ProbSAT:
     # TODO needs overhaul!!!
@@ -40,8 +39,6 @@ class ProbSAT:
                  maxTries=None,
                  timeLimit=None,
                  func=None,
-                 minEntropyF=0,
-                 lookBack=None,
                  seed=None):
         if isinstance(formula, CNF):
             self.formula = formula
@@ -101,19 +98,9 @@ class ProbSAT:
         self.sat=None
         self.assignment = None
 
-        self.withLookBack = type(minEntropyF) == float and type(lookBack) == int
-        if self.withLookBack and (minEntropyF < 0 or minEntropyF > 1):
-            raise ValueError('minEntropyF={} should be between 0 and 1.'
-                             .format(minEntropyF))
-
         self.maxEntropy=math.log(self.formula.numVars, 2)
-        #if self.withLookBack:
-        self.minEntropy = self.maxEntropy*minEntropyF
-        self.minEntropyF = minEntropyF
 
-        self.lookBack = lookBack
         self.seed = seed
-        self.averageEntropy = 0
         self.runs = []
 
 
@@ -132,8 +119,6 @@ class ProbSAT:
 
     def __call__(self):
         self.solve(self.seed)
-
-
 
 
     def solve(self, seed):
@@ -159,29 +144,20 @@ class ProbSAT:
             if self.timeLimit and time.time() - begin > self.timeLimit:
                 break
 
-            entropy_tracker = Entropytracker(self.maxFlips, self.formula.numVars)
-
             self.initWalk()
 
             minUnsat = len(self.falseClauses)
 
-            if self.withLookBack:
-                walkTracker = Entropytracker(self.lookBack, self.formula.numVars)
-
-
             # Default information for this run
             record = dict(
                 flips                    = None,
-                early_restart            = False,
-                entropy                  = None,
-                entropy_estim_at_restart = None,
                 minimal_unsat            = None,
                 last_unsat               = None,
-                max_entropy_var          = None,
-                max_entropy_var_entropy  = None,
-                max_entropy_var_prob     = None,
+                dist_1                   = {},
+                dist_2                   = {},
             )
             self.runs.append(record)
+            last_var = None
             for f in range(1, self.maxFlips+1):
                 unsat = len(self.falseClauses)
                 if unsat < minUnsat:
@@ -197,10 +173,6 @@ class ProbSAT:
                     end = time.time()
                     self.time = end-begin
                     self.sat = True
-                    record['entropy'] = entropy_tracker.getEntropy(
-                        relative = True,
-                        force = True
-                    )
                     return
 
                 # C_u <- randomly selected unsat clause
@@ -214,36 +186,29 @@ class ProbSAT:
 
                 # var <- random variable x according to probability
                 #   f(x,a)/sum(x in C_u, f(x,a))
-                lit = choose(c, ws)
-                entropy_tracker.add(abs(lit))
+                var = abs(choose(c, ws))
+
+                if var in record['dist_1']:
+                    record['dist_1'][var] += 1
+                else:
+                    record['dist_1'][var] = 1
+
+                if last_var:
+                    if (last_var, var) in record['dist_2']:
+                        record['dist_2'][(last_var, var)] += 1
+                    else:
+                        record['dist_2'][(last_var, var)] = 1
+
+                last_var = var
 
                 # flip(var)
                 self.scoreboard.flip(
-                    abs(lit),
+                    var,
                     self.formula,
                     self.assignment,
                     self.falseClauses
                 )
 
-                # Measuring step data
-                if self.withLookBack:
-                    walkTracker.add(abs(lit))
-                    h = walkTracker.getEntropy(relative = True)
-                    record['entropy_estim_at_restart'] = walkTracker.getEntropy(relative = False)
-                    if h and h > self.minEntropyF:
-                        if random.random() >= (self.minEntropyF/h):
-                            self.earlyRestarts += 1
-                            record['early_restart'] = True
-                            break
-
-            record['entropy'] = entropy_tracker.getEntropy(
-                relative = False,
-                force = True
-            )
-            l, h, p = entropy_tracker.max_entropy_variable()
-            record['max_entropy_var'] = l
-            record['max_entropy_var_entropy'] = h
-            record['max_entropy_var_prob'] = p
 
         end = time.time()
         self.time = end-begin

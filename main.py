@@ -10,11 +10,19 @@ import sqlite3
 
 from experiments import experiments, short_cut
 
+
 make_experiment = """
 CREATE TABLE IF NOT EXISTS experiment
     ( id              INTEGER PRIMARY KEY
     , experiment_name TEXT
     )
+"""
+
+save_experiment = """
+INSERT INTO experiment
+    ( experiment_name )
+VALUES
+    (?)
 """
 
 make_algorithm_run = """
@@ -27,36 +35,10 @@ CREATE TABLE IF NOT EXISTS algorithm_run
     , variables     INTEGER
     , clauses       INTEGER
     , cb            REAL
-    , reference_entropy REAL
-    , lookback      INTEGER
     , time          INTEGER
     , sat           BOOL
     , FOREIGN KEY(experiment_id) REFERENCES experiment(id)
     )
-"""
-
-make_search_run = """
-CREATE TABLE IF NOT EXISTS search_run
-    ( id               INTEGER PRIMARY KEY
-    , algorithm_run_id INTEGER
-    , flips            INTEGER
-    , early_restart    BOOL
-    , entropy          REAL
-    , entropy_estim_at_restart REAL
-    , minimal_unsat    INTEGER
-    , last_unsat       INTEGER
-    , max_entropy_var  INTEGER
-    , max_entropy_var_entropy REAL
-    , max_entropy_var_prob REAL
-    , FOREIGN KEY(algorithm_run_id) REFERENCES algorithm_run(id)
-    )
-"""
-
-save_experiment = """
-INSERT INTO experiment
-    ( experiment_name )
-VALUES
-    (?)
 """
 
 save_algorithm_run = """
@@ -68,31 +50,105 @@ INSERT INTO algorithm_run
     , variables
     , clauses
     , cb
-    , reference_entropy
-    , lookback
     , time
     , sat
     )
 VALUES
-    (?,?,?,?,?,?,?,?,?,?,?)
+    (?,?,?,?,?,?,?,?,?)
+"""
+
+make_search_run = """
+CREATE TABLE IF NOT EXISTS search_run
+    ( id               INTEGER PRIMARY KEY
+    , algorithm_run_id INTEGER
+    , flips            INTEGER
+    , minimal_unsat    INTEGER
+    , last_unsat       INTEGER
+    , h_1              REAL
+    , h_2              REAL
+    , FOREIGN KEY(algorithm_run_id) REFERENCES algorithm_run(id)
+    )
 """
 
 save_search_run = """
 INSERT INTO search_run
     ( algorithm_run_id
     , flips
-    , early_restart
-    , entropy
-    , entropy_estim_at_restart
     , minimal_unsat
     , last_unsat
-    , max_entropy_var
-    , max_entropy_var_entropy
-    , max_entropy_var_prob
+    , h_1
+    , h_2
     )
 VALUES
-    (?,?,?,?,?,?,?,?,?,?)
+    (?,?,?,?,?,?)
 """
+
+make_dist_1 = """
+CREATE TABLE IF NOT EXISTS dist_1
+    ( id        INTEGER PRIMARY KEY
+    , run_id    INTEGER
+    , label     TEXT
+    , variable  INTEGER
+    , measure   REAL
+    , FOREIGN KEY(run_id) REFERENCES search_run(id)
+    )
+"""
+
+save_dist_1 = """
+INSERT INTO dist_1
+    ( run_id
+    , label
+    , variable
+    , measure
+    )
+VALUES
+    (?, ?, ?, ?)
+"""
+
+make_dist_2 = """
+CREATE TABLE IF NOT EXISTS dist_2
+    ( id         INTEGER PRIMARY KEY
+    , run_id     INTEGER
+    , label      TEXT
+    , variable_1 INTEGER
+    , variable_2 INTEGER
+    , measure    REAL
+    , FOREIGN KEY(run_id) REFERENCES search_run(id)
+    )
+"""
+
+save_dist_2 = """
+INSERT INTO dist_2
+    ( run_id
+    , label
+    , variable_1
+    , variable_2
+    , measure
+    )
+VALUES
+    (?,?,?,?,?)
+"""
+
+def eval_dist(dist):
+    s = sum([c for _,c in dist.items()])
+    probs = {k: c/s for k,c in dist.items()}
+    h = lambda p: -math.log(p) * p
+    entropies = {k:h(p) for k,p in probs.items()}
+    max_h = max(entropies, key = entropies.get)
+    min_h = min(entropies, key = entropies.get)
+    max_p = max(probs, key = probs.get)
+    min_p = min(probs, key = probs.get)
+    h = sum(entropies.values())
+
+    return (
+        h,
+        {
+            'max_h': (max_h, entropies[max_h]),
+            'min_h': (min_h, entropies[min_h]),
+            'max_p': (max_p, probs[max_p]),
+            'min_p': (min_p, probs[min_p])
+        }
+    )
 
 if __name__ == '__main__':
     # Parse arguments
@@ -117,7 +173,7 @@ if __name__ == '__main__':
         sys.exit(1)
 
     repeat = 1
-    outfile_path = '{}.raw.db'.format(experiment_name)
+    outfile_path = '{}.db'.format(experiment_name)
     poolsize = 1
     input_root = ''
     output_root = ''
@@ -189,6 +245,9 @@ if __name__ == '__main__':
         c.execute(make_experiment)
         c.execute(make_algorithm_run)
         c.execute(make_search_run)
+        c.execute(make_dist_1)
+        c.execute(make_dist_2)
+
         conn.commit()
 
         total_time = 0
@@ -264,29 +323,51 @@ if __name__ == '__main__':
                         result['variables'],
                         result['clauses'],
                         result['cb'],
-                        result['lookback'],
-                        result['reference_entropy'],
                         result['time'],
                         result['sat'],
                     )
                 )
-                lastrowid = c.lastrowid
+                alg_id = c.lastrowid
                 for run in result['runs']:
+
+                    h_1, ms_1 = eval_dist(run['dist_1'])
+                    h_2, ms_2 = eval_dist(run['dist_2'])
+
                     c.execute(
                         save_search_run,
                         (
-                            lastrowid,
+                            alg_id,
                             run['flips'],
-                            run['early_restart'],
-                            run['entropy'],
-                            run['entropy_estim_at_restart'],
                             run['minimal_unsat'],
                             run['last_unsat'],
-                            run['max_entropy_var'],
-                            run['max_entropy_var_entropy'],
-                            run['max_entropy_var_prob'],
+                            h_1,
+                            h_2,
                         ),
                     )
+
+                    run_id = c.lastrowid
+                    for lbl, (var, measure) in ms_1.items():
+                        c.execute(
+                            save_dist_1,
+                            (
+                                run_id,
+                                lbl,
+                                var,
+                                measure,
+                            )
+                        )
+                    for lbl, ((var_1, var_2), measure) in ms_2.items():
+                        c.execute(
+                            save_dist_2,
+                            (
+                                run_id,
+                                lbl,
+                                var_1,
+                                var_2,
+                                measure,
+                            )
+                        )
+
             conn.commit()
 
             # Repeat

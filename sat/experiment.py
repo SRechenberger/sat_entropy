@@ -125,8 +125,6 @@ class Experiment:
             variables   = solver.formula.numVars,
             clauses     = solver.formula.numClauses,
             cb          = solver.cb,
-            reference_entropy = solver.minEntropy/solver.maxEntropy,
-            lookback    = solver.lookBack,
             time        = solver.time,
             runs        = solver.runs,
             sat         = solver.sat,
