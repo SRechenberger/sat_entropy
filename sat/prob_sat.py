@@ -177,6 +177,9 @@ class ProbSAT:
                 entropy_estim_at_restart = None,
                 minimal_unsat            = None,
                 last_unsat               = None,
+                max_entropy_var          = None,
+                max_entropy_var_entropy  = None,
+                max_entropy_var_prob     = None,
             )
             self.runs.append(record)
             for f in range(1, self.maxFlips+1):
@@ -226,7 +229,7 @@ class ProbSAT:
                 if self.withLookBack:
                     walkTracker.add(abs(lit))
                     h = walkTracker.getEntropy(relative = True)
-                    record['entropy_estim_at_restart'] = h
+                    record['entropy_estim_at_restart'] = walkTracker.getEntropy(relative = False)
                     if h and h > self.minEntropyF:
                         if random.random() >= (self.minEntropyF/h):
                             self.earlyRestarts += 1
@@ -234,9 +237,13 @@ class ProbSAT:
                             break
 
             record['entropy'] = entropy_tracker.getEntropy(
-                relative = True,
+                relative = False,
                 force = True
             )
+            l, h, p = entropy_tracker.max_entropy_variable()
+            record['max_entropy_var'] = l
+            record['max_entropy_var_entropy'] = h
+            record['max_entropy_var_prob'] = p
 
         end = time.time()
         self.time = end-begin
