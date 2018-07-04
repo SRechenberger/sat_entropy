@@ -100,6 +100,11 @@ class Entropytracker:
                 entropy -= p*math.log(p,2)
         return entropy
 
+    def max_entropy_variable(self):
+        return max(
+            list(enumerate(self.count))[1:],
+            key = lambda x: self.h[self.count[x]]
+        )
 
     def add(self, elem):
         """ Adds a new element to the queue, and updates the entropy,
