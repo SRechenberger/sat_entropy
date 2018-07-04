@@ -45,6 +45,9 @@ CREATE TABLE IF NOT EXISTS search_run
     , entropy_estim_at_restart REAL
     , minimal_unsat    INTEGER
     , last_unsat       INTEGER
+    , max_entropy_var  INTEGER
+    , max_entropy_var_entropy REAL
+    , max_entropy_var_prob REAL
     , FOREIGN KEY(algorithm_run_id) REFERENCES algorithm_run(id)
     )
 """
@@ -83,9 +86,12 @@ INSERT INTO search_run
     , entropy_estim_at_restart
     , minimal_unsat
     , last_unsat
+    , max_entropy_var
+    , max_entropy_var_entropy
+    , max_entropy_var_prob
     )
 VALUES
-    (?,?,?,?,?,?,?)
+    (?,?,?,?,?,?,?,?,?,?)
 """
 
 if __name__ == '__main__':
@@ -276,6 +282,9 @@ if __name__ == '__main__':
                             run['entropy_estim_at_restart'],
                             run['minimal_unsat'],
                             run['last_unsat'],
+                            run['max_entropy_var'],
+                            run['max_entropy_var_entropy'],
+                            run['max_entropy_var_prob'],
                         ),
                     )
             conn.commit()
