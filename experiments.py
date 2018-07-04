@@ -72,14 +72,14 @@ experiments = {
             timeLimit = 20,
         )
     ),
-    'k3-v10-r4.0-er': dict(
+    'k3-v10-r4.0': dict(
         dirs   = ['unif-k3-r4.0-v10-c40'],
         solver = ProbSAT,
         prob   = 2,
         config = dict(
             maxFlips = 50 * 10,
-            lookBack = list(map(lambda f: f*10, range(2,10))),
-            minEntropyF = float_range_list(0.8,1.0,0.01),
+            #lookBack = list(map(lambda f: f*10, range(2,10))),
+            #minEntropyF = float_range_list(0.8,1.0,0.01),
             timeLimit = 20,
         )
     ),
