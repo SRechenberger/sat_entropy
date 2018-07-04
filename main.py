@@ -10,9 +10,17 @@ import sqlite3
 
 from experiments import experiments, short_cut
 
+make_experiment = """
+CREATE TABLE IF NOT EXISTS experiment
+    ( id              INTEGER PRIMARY KEY
+    , experiment_name TEXT
+    )
+"""
+
 make_algorithm_run = """
 CREATE TABLE IF NOT EXISTS algorithm_run
     ( id            INTEGER PRIMARY KEY
+    , experiment_id INTEGER
     , solver        TEXT
     , formula_fname TEXT
     , max_clause_len    INTEGER
@@ -23,6 +31,7 @@ CREATE TABLE IF NOT EXISTS algorithm_run
     , lookback      INTEGER
     , time          INTEGER
     , sat           BOOL
+    , FOREIGN KEY(experiment_id) REFERENCES experiment(id)
     )
 """
 
@@ -40,9 +49,17 @@ CREATE TABLE IF NOT EXISTS search_run
     )
 """
 
+save_experiment = """
+INSERT INTO experiment
+    ( experiment_name )
+VALUES
+    (?)
+"""
+
 save_algorithm_run = """
 INSERT INTO algorithm_run
-    ( solver
+    ( experiment_id
+    , solver
     , formula_fname
     , max_clause_len
     , variables
@@ -54,7 +71,7 @@ INSERT INTO algorithm_run
     , sat
     )
 VALUES
-    (?,?,?,?,?,?,?,?,?,?)
+    (?,?,?,?,?,?,?,?,?,?,?)
 """
 
 save_search_run = """
@@ -163,6 +180,7 @@ if __name__ == '__main__':
 
     with sqlite3.connect(outfile_path, timeout=5*60) as conn:
         c = conn.cursor()
+        c.execute(make_experiment)
         c.execute(make_algorithm_run)
         c.execute(make_search_run)
         conn.commit()
@@ -170,7 +188,6 @@ if __name__ == '__main__':
         total_time = 0
         need_label = True
         i = 0
-
         while i < repeat:
             # results = []
             # Initialize the experiment.
@@ -228,10 +245,13 @@ if __name__ == '__main__':
 
             # Save the results
             # with sqlite3.connect(outfile_path, timeout=5*60) as conn:
+            c.execute(save_experiment, (experiment_name,))
+            exp_id = c.lastrowid
             for result in exp.results:
                 c.execute(
                     save_algorithm_run,
                     (
+                        exp_id,
                         "probSAT",
                         result['formula_fname'],
                         result['max_clause_len'],
