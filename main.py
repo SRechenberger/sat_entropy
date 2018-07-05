@@ -2,6 +2,7 @@
 
 from sat.experiment import *
 from sat.prob_sat import *
+import analysis
 import sys
 import os
 import time
@@ -132,8 +133,7 @@ VALUES
 def eval_dist(dist):
     s = sum([c for _,c in dist.items()])
     probs = {k: c/s for k,c in dist.items()}
-    h = lambda p: -math.log(p) * p
-    entropies = {k:h(p) for k,p in probs.items()}
+    entropies = {k:analysis.entropy(p) for k,p in probs.items()}
     max_h = max(entropies, key = entropies.get)
     min_h = min(entropies, key = entropies.get)
     max_p = max(probs, key = probs.get)
