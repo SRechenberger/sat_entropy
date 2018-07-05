@@ -1,6 +1,6 @@
 #!/bin/bash
 #MSUB -l nodes=1:ppn=16
-#MSUB -l walltime=6:00:00
+#MSUB -l walltime=2:00:00
 #MSUB -l pmem=3000mb
 #MSUB -N k3-v500-r4.1
 #MSUB -o k3-v500-r4.1.out
