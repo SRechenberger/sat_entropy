@@ -1,6 +1,6 @@
 #!/bin/bash
 #MSUB -l nodes=1:ppn=16
-#MSUB -l walltime=9:00:00
+#MSUB -l walltime=10:00:00
 #MSUB -l pmem=2000mb
 #MSUB -N k3-v500-r4.2
 #MSUB -o k3-v500-r4.2.out
@@ -10,4 +10,4 @@
 
 module load devel/python/3.5.2
 
-python main.py k3-v500-r4.2 --input_root $WORK/formulae --output_root $WORK/sat_experiment_data --poolsize 16 --repeat 10
+python main.py k3-v500-r4.2 --input_root $WORK/formulae --output_root $WORK/sat_experiment_data --poolsize 16 --repeat 100
