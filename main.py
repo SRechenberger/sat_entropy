@@ -2,7 +2,6 @@
 
 from sat.experiment import *
 from sat.prob_sat import *
-import analysis
 import sys
 import os
 import time
@@ -130,10 +129,16 @@ VALUES
     (?,?,?,?,?)
 """
 
+def lb(x):
+    return 0 if x == 0 else math.log(x, 2)
+
+def entropy(p):
+    return -p * lb(p)
+
 def eval_dist(dist):
     s = sum([c for _,c in dist.items()])
     probs = {k: c/s for k,c in dist.items()}
-    entropies = {k:analysis.entropy(p) for k,p in probs.items()}
+    entropies = {k:entropy(p) for k,p in probs.items()}
     max_h = max(entropies, key = entropies.get)
     min_h = min(entropies, key = entropies.get)
     max_p = max(probs, key = probs.get)
