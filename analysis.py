@@ -25,3 +25,5 @@ def print_table_schemes(fname, *tables):
             for (_,name,data_type,_,_,pk) in conn.cursor().execute('PRAGMA table_info({})'.format(table)):
                 print(format_template.format(name, data_type, pk))
             print()
+
+
