@@ -3,7 +3,7 @@
 #MSUB -l walltime=2:00:00
 #MSUB -l pmem=3000mb
 #MSUB -N k3-v500-r4.1
-#MSUB -o k3-v500-r4.1.out
+#MSUB -o out/k3-v500-r4.1.out
 #MSUB -M sascha.rechenberger@uni-ulm.de
 #MSUB -m bea
 #MSUB -q singlenode
