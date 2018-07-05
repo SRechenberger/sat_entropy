@@ -11,7 +11,7 @@ def entropy(p):
 
 ### Maximum likelihood
 def log_likelihood(pdf, data):
-    f = np.vectorize(lambda x: safe_log(pdf(x)))
+    f = np.vectorize(lambda x: lb(pdf(x)))
     return sum(f(data))
 
 a4_dims = (11.7, 8.27)
