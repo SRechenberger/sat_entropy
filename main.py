@@ -66,6 +66,7 @@ CREATE TABLE IF NOT EXISTS search_run
     , last_unsat       INTEGER
     , h_1              REAL
     , h_2              REAL
+    , min_h            REAL
     , FOREIGN KEY(algorithm_run_id) REFERENCES algorithm_run(id)
     )
 """
@@ -78,9 +79,10 @@ INSERT INTO search_run
     , last_unsat
     , h_1
     , h_2
+    , min_h
     )
 VALUES
-    (?,?,?,?,?,?)
+    (?,?,?,?,?,?,?)
 """
 
 make_dist_1 = """
@@ -347,6 +349,7 @@ if __name__ == '__main__':
                             run['last_unsat'],
                             h_1,
                             h_2,
+                            run['min_h'],
                         ),
                     )
 

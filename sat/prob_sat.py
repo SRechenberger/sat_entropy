@@ -145,6 +145,10 @@ class ProbSAT:
                 break
 
             self.initWalk()
+            tracker = Entropytracker(
+                int(self.formula.numVars/2),
+                self.formula.numVars
+            )
 
             minUnsat = len(self.falseClauses)
 
@@ -153,6 +157,7 @@ class ProbSAT:
                 flips                    = None,
                 minimal_unsat            = None,
                 last_unsat               = None,
+                min_h                    = math.log(self.formula.numVars,2),
                 dist_1                   = {},
                 dist_2                   = {},
             )
@@ -187,7 +192,9 @@ class ProbSAT:
                 # var <- random variable x according to probability
                 #   f(x,a)/sum(x in C_u, f(x,a))
                 var = abs(choose(c, ws))
-
+                filled = tracker.add(var)
+                if filled:
+                    record['min_h'] = min(tracker.getEntropy(),record['min_h'])
                 if var in record['dist_1']:
                     record['dist_1'][var] += 1
                 else:

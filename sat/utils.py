@@ -156,6 +156,8 @@ class Entropytracker:
         # Increment the counter then.
         self.count[elem] += 1
 
+        return (ret != None)
+
 
     def getEntropy(self, relative=False, force = False):
         """ If the queue is sufficiently filled, return the entropy,
